@@ -124,6 +124,7 @@ details.ctx .ctx-body{padding:0 14px 13px;font-size:14.5px;color:var(--ink-2);li
 .key[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .key.ok{background:var(--ok-tint);border-color:var(--ok);color:var(--ok)}
 .key.bad{background:var(--bad-tint);border-color:var(--bad);color:var(--bad)}
+.scoring{font-size:12.5px;line-height:1.5;color:var(--muted);border-left:2px solid var(--line-2);padding-left:10px}
 .qfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:2px}
 .qfoot .spacer{flex:1}
 .flagbtn[aria-pressed="true"]{background:var(--flag-tint);border-color:var(--flag-line);color:var(--flag)}
@@ -354,12 +355,16 @@ function scoreOne(q, ans){
   if(src.type==='single'){
     if(ans===src.answer){ got=max; state='ok'; }
   } else if(src.type==='multi'){
+    /* ҰБТ ережесі: қате не артық нұсқа болса — 0; бәрі дұрыс — 2;
+       дәл біреуі жетіспесе — 1; одан аз белгіленсе — 0. */
     var sel = ans||[];
+    var need = src.answer.length;
     var right = sel.filter(function(x){ return src.answer.indexOf(x)>=0; }).length;
     var wrong = sel.length - right;
     if(wrong>0 || right===0){ got=0; state='bad'; }
-    else if(right===src.answer.length){ got=2; state='ok'; }
-    else { got=1; state='part'; }
+    else if(right===need){ got=2; state='ok'; }
+    else if(need>=2 && right===need-1){ got=1; state='part'; }
+    else { got=0; state='bad'; }
   } else {
     var hits = src.items.filter(function(it,k){ return (ans||[])[k]===it.answer; }).length;
     got = hits;                       /* 2 items -> 1 балл әрқайсысы */
@@ -482,6 +487,9 @@ function renderQ(){
               '<span class="k">'+LETTERS[oi]+'</span><span class="t">'+esc(o.text)+'</span></button>';
     });
     html += '</div>';
+    if(src.type==='multi'){
+      html += '<p class="scoring">Бағалау: барлық дұрыс нұсқа белгіленсе — 2 балл; дәл біреуі жетіспесе — 1 балл; артық не қате нұсқа болса — 0 балл.</p>';
+    }
   }
 
   html += '<div class="qfoot">'+
