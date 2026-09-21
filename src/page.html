@@ -92,7 +92,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 .chip.resume{background:var(--flag-tint);color:var(--flag);border-color:var(--flag-line)}
 .qimg{margin:0;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden;background:var(--surface-2)}
 .qimg img{display:block;width:100%;height:auto;max-height:min(70vh,560px);object-fit:contain}
-.idform{display:flex;flex-direction:column;gap:14px;padding:20px}
+.idform{display:flex;flex-direction:column;gap:12px;padding:20px}
+.idrow{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.idrow{grid-template-columns:2fr 1fr}}
+.test-card[disabled]{opacity:.5;cursor:not-allowed}
+.test-card[disabled]:hover{border-color:var(--line-2);transform:none}
+.test-card[disabled] .tc-go{color:var(--muted)}
 .idform h2{font-size:18px}
 .idform label{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:700;color:var(--ink-2)}
 .idform input{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--surface);
@@ -268,36 +273,27 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
       </div>
     </div>
 
+    <div class="panel idform" id="who-panel" hidden>
+      <h2>Өзіңіз туралы</h2>
+      <p class="hint" style="margin-top:-6px">Нәтижеңіз мұғалімге осы атпен жіберіледі. Бір рет жазсаңыз, келесі жолы есте қалады.</p>
+      <div class="idrow">
+        <label for="in-name">Аты-жөні
+          <input id="in-name" type="text" autocomplete="name" maxlength="120" placeholder="Айдана Серікқызы">
+        </label>
+        <label for="in-group">Сынып немесе тобыңыз
+          <input id="in-group" type="text" autocomplete="off" maxlength="60" placeholder="11Ә">
+        </label>
+      </div>
+      <p class="err" id="id-err" hidden></p>
+    </div>
+
     <div class="start-head" style="gap:6px">
       <p class="eyebrow">Нұсқаны таңдаңыз</p>
+      <p class="hint" id="who-line" hidden></p>
     </div>
-    <p class="note" id="who-line" hidden></p>
     <div class="test-list" id="test-list"></div>
 
-    <p class="note">Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді. Пернетақтамен де жұмыс істейді: <kbd>1</kbd>–<kbd>6</kbd> нұсқаны таңдайды, <kbd>←</kbd> <kbd>→</kbd> сұрақтарды ауыстырады.</p>
-  </section>
-
-  <!-- ============ ОҚУШЫ ДЕРЕКТЕРІ ============ -->
-  <section id="screen-id" class="start" hidden>
-    <div class="start-head">
-      <div class="rule"></div>
-      <p class="eyebrow" id="id-eyebrow"></p>
-      <h1>Өзіңіз туралы</h1>
-      <p class="lede">Нәтижеңіз мұғалімге осы атпен жіберіледі. Бір рет енгізсеңіз, келесі жолы есте қалады.</p>
-    </div>
-    <div class="panel idform">
-      <label for="in-name">Аты-жөні
-        <input id="in-name" type="text" autocomplete="name" maxlength="120" placeholder="Мысалы: Айдана Серікқызы">
-      </label>
-      <label for="in-group">Сынып немесе тобыңыз
-        <input id="in-group" type="text" autocomplete="off" maxlength="60" placeholder="Мысалы: 11Ә">
-      </label>
-      <p class="err" id="id-err" hidden></p>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="id-go" type="button">Тестті бастау</button>
-        <button class="btn" id="id-back" type="button">Артқа</button>
-      </div>
-    </div>
+    <p class="note" id="privacy"></p>
   </section>
 
   <!-- ============ QUIZ ============ -->
@@ -345,7 +341,6 @@ function drop(k){ try{ localStorage.removeItem(k); }catch(e){} }
 /* ---------- dom ---------- */
 var $ = function(id){ return document.getElementById(id); };
 var elStart=$('screen-start'), elQuiz=$('screen-quiz'), elResult=$('screen-result');
-var elId=$('screen-id');
 var elCard=$('qcard'), elNavGrid=$('navgrid'), elNavPanel=$('navpanel'), elNavHint=$('navhint');
 var topbar=null;
 
@@ -868,7 +863,7 @@ var timerId=null;
 function begin(state){
   S=hydrate(state);
   mountTopbar(); topbar.hidden=false;
-  elStart.hidden=true; elResult.hidden=true; elId.hidden=true; elQuiz.hidden=false;
+  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=false;
   elNavPanel.hidden = window.innerWidth<900;
   renderQ(); tick();
   if(timerId) clearInterval(timerId);
@@ -878,7 +873,7 @@ function begin(state){
 function home(){
   if(timerId) clearInterval(timerId);
   S=null; T=null;
-  elQuiz.hidden=true; elResult.hidden=true; elId.hidden=true; elStart.hidden=false;
+  elQuiz.hidden=true; elResult.hidden=true; elStart.hidden=false;
   if(topbar) topbar.hidden=true;
   renderHome();
   window.scrollTo({top:0});
@@ -895,14 +890,14 @@ function renderHome(){
   var qn=TESTS.reduce(function(a,t){ return a+t.questions.length; },0);
   $('home-lede').textContent = TESTS.length+' нұсқа, барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен '+
     'жеке нәтижесі болады — кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
+  $('who-panel').hidden = !COLLECT;
+  var ready = !COLLECT || who.name.length >= 2;
   var w=$('who-line');
-  if(w){
-    if(COLLECT && who.name){
-      w.hidden=false;
-      w.innerHTML='Нәтиже <b>'+esc(who.name)+(who.group?', '+esc(who.group):'')+
-        '</b> атынан жіберіледі. <button class="icon-btn" id="who-edit" type="button">Өзгерту</button>';
-      $('who-edit').addEventListener('click', function(){ T=null; askWhoStandalone(); });
-    } else w.hidden=true;
+  w.hidden = !COLLECT;
+  if(COLLECT){
+    w.textContent = ready
+      ? 'Нәтиже ' + who.name + (who.group ? ', ' + who.group : '') + ' атынан жіберіледі.'
+      : 'Нұсқаны ашу үшін алдымен аты-жөніңізді жазыңыз.';
   }
   list.innerHTML='';
   TESTS.forEach(function(t, k){
@@ -921,37 +916,21 @@ function renderHome(){
       '<span class="tc-main"><span class="tc-title">'+esc(t.title)+'</span>'+
       '<span class="tc-meta">'+chips+'</span></span>'+
       '<span class="tc-go" aria-hidden="true">→</span>';
+    if(!ready) b.disabled = true;
     b.addEventListener('click', function(){ openTest(k); });
     list.appendChild(b);
   });
 }
 
 function openTest(k){
+  if(COLLECT && who.name.length < 2){
+    $('id-err').textContent='Аты-жөніңізді жазыңыз.';
+    $('id-err').hidden=false;
+    $('in-name').focus();
+    return;
+  }
   T = TESTS[k];
-  if(COLLECT && !who.name){ askWho(); return; }
   enterTest();
-}
-
-function askWhoStandalone(){
-  $('id-eyebrow').textContent = 'Деректерді өзгерту';
-  $('in-name').value = who.name || '';
-  $('in-group').value = who.group || '';
-  $('id-err').hidden = true;
-  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=true; elId.hidden=false;
-  if(topbar) topbar.hidden=true;
-  window.scrollTo({top:0});
-  setTimeout(function(){ $('in-name').focus(); }, 30);
-}
-
-function askWho(){
-  $('id-eyebrow').textContent = T.title;
-  $('in-name').value = who.name || '';
-  $('in-group').value = who.group || '';
-  $('id-err').hidden = true;
-  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=true; elId.hidden=false;
-  if(topbar) topbar.hidden=true;
-  window.scrollTo({top:0});
-  setTimeout(function(){ $('in-name').focus(); }, 30);
 }
 
 function enterTest(){
@@ -964,20 +943,16 @@ function enterTest(){
   } else begin(buildSession());
 }
 
-$('id-go').addEventListener('click', function(){
-  var nm=$('in-name').value.trim(), gr=$('in-group').value.trim();
-  if(nm.length < 2){
-    $('id-err').textContent='Аты-жөніңізді жазыңыз — нәтиже осы атпен жіберіледі.';
-    $('id-err').hidden=false; $('in-name').focus(); return;
-  }
-  who = {name:nm, group:gr};
+function whoInput(){
+  who = { name: $('in-name').value.trim(), group: $('in-group').value.trim() };
   save(KEY_WHO, who);
-  elId.hidden=true;
-  if(T) enterTest(); else home();
-});
-$('id-back').addEventListener('click', function(){ elId.hidden=true; home(); });
-$('in-group').addEventListener('keydown', function(e){ if(e.key==='Enter') $('id-go').click(); });
-$('in-name').addEventListener('keydown', function(e){ if(e.key==='Enter') $('in-group').focus(); });
+  if(who.name.length >= 2) $('id-err').hidden = true;
+  renderHome();
+}
+if(COLLECT){
+  $('in-name').addEventListener('input', whoInput);
+  $('in-group').addEventListener('input', whoInput);
+}
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', function(e){
@@ -997,7 +972,19 @@ document.addEventListener('keydown', function(e){
 window.addEventListener('beforeunload', persist);
 
 /* ---------- boot ---------- */
-function start(){ renderHome(); }
+var KEYS_NOTE = ' Пернетақтамен де жұмыс істейді: <kbd>1</kbd>–<kbd>6</kbd> нұсқаны таңдайды, '+
+  '<kbd>←</kbd> <kbd>→</kbd> сұрақтарды ауыстырады.';
+
+function start(){
+  $('privacy').innerHTML = (COLLECT
+    ? 'Тест аяқталғанда аты-жөніңіз, сыныбыңыз және нәтижеңіз мұғалімге жіберіледі. Прогресіңіз осы браузерде сақталады.'
+    : 'Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді.') + KEYS_NOTE;
+  if(COLLECT){
+    $('in-name').value = who.name || '';
+    $('in-group').value = who.group || '';
+  }
+  renderHome();
+}
 function resume(d){
   start();
   if(d && d.s && d.s.slug){
