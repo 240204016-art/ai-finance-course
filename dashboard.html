@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Биология пәнінен ҰБТ үлгісіндегі бес нұсқа: таймер, сұрақтар картасы және әр сұрақтың толық талдауы.">
+<meta name="description" content="Оқушылардың тест нәтижелерін талдайтын мұғалім дашборды.">
 <meta name="color-scheme" content="light dark">
 <style>
 :root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -11,22 +11,22 @@ body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
-<title>Биология ҰБТ сынағы</title>
+<title>Нәтижелер дашборды</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&family=PT+Sans:wght@400;700&display=swap">
 <style>
 :root{
   --bg:#F2F5F3; --surface:#FFFFFF; --surface-2:#E9EFEC; --surface-3:#DFE8E3;
   --ink:#13201E; --ink-2:#3C4C48; --muted:#6A7A75;
   --line:#D8E2DD; --line-2:#BFCDC7;
   --accent:#0F4C5C; --accent-2:#15697E; --accent-tint:#E0EDF1; --on-accent:#FFFFFF;
-  --ok:#2C6E34; --ok-tint:#E4F0E3; --ok-line:#A9CCA7;
-  --bad:#A92219; --bad-tint:#F9E6E3; --bad-line:#E0ADA6;
-  --flag:#8F5D00; --flag-tint:#FAEED7; --flag-line:#DDBE7E;
+  --bar:#15697E; --bar-soft:#BFD9E1;
+  --good:#0CA30C; --warn:#FAB219; --crit:#D03B3B;
+  --ok:#2C6E34; --ok-tint:#E4F0E3; --bad:#A92219; --bad-tint:#F9E6E3;
   --shadow:0 1px 2px rgba(19,32,30,.05), 0 10px 28px -20px rgba(19,32,30,.45);
   --r:12px; --r-s:8px;
-  --serif:"PT Serif",Georgia,"Times New Roman",serif;
+  --serif:"PT Serif",Georgia,serif;
   --sans:"PT Sans","Segoe UI",Roboto,system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme:dark){
@@ -35,9 +35,8 @@ img{max-width:100%}
     --ink:#E8EFEC; --ink-2:#C4D1CD; --muted:#93A39E;
     --line:#293430; --line-2:#3A4742;
     --accent:#55B2C8; --accent-2:#79C8DA; --accent-tint:#13333B; --on-accent:#08191E;
-    --ok:#77BE79; --ok-tint:#172C19; --ok-line:#33562F;
-    --bad:#F0918A; --bad-tint:#2E1614; --bad-line:#5E2A25;
-    --flag:#E0B266; --flag-tint:#2C2313; --flag-line:#574529;
+    --bar:#55B2C8; --bar-soft:#1D3A42;
+    --ok:#77BE79; --ok-tint:#172C19; --bad:#F0918A; --bad-tint:#2E1614;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
   }
 }
@@ -46,292 +45,156 @@ img{max-width:100%}
   --ink:#E8EFEC; --ink-2:#C4D1CD; --muted:#93A39E;
   --line:#293430; --line-2:#3A4742;
   --accent:#55B2C8; --accent-2:#79C8DA; --accent-tint:#13333B; --on-accent:#08191E;
-  --ok:#77BE79; --ok-tint:#172C19; --ok-line:#33562F;
-  --bad:#F0918A; --bad-tint:#2E1614; --bad-line:#5E2A25;
-  --flag:#E0B266; --flag-tint:#2C2313; --flag-line:#574529;
+  --bar:#55B2C8; --bar-soft:#1D3A42;
+  --ok:#77BE79; --ok-tint:#172C19; --bad:#F0918A; --bad-tint:#2E1614;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
 }
-
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
-.wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:0}
-h1,h2,h3{font-family:var(--serif);font-weight:700;text-wrap:balance;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:32px 56px;
+  display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--serif);font-weight:700;margin:0;text-wrap:balance}
 p{margin:0}
 button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-radius:4px}
 .eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .tnum{font-variant-numeric:tabular-nums}
-
-/* ---------- start screen ---------- */
-.start{padding-block:44px 56px;display:flex;flex-direction:column;gap:28px}
-.start-head{display:flex;flex-direction:column;gap:12px}
-.start h1{font-size:clamp(30px,6vw,44px);line-height:1.12;letter-spacing:-.01em}
-.start .lede{color:var(--ink-2);max-width:60ch}
 .rule{height:3px;width:56px;background:var(--accent);border-radius:2px}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.fact{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:3px}
-.fact b{font-family:var(--serif);font-size:24px;line-height:1.1}
-.fact span{font-size:13px;color:var(--muted)}
+.head{display:flex;flex-direction:column;gap:10px}
+.head h1{font-size:clamp(28px,5vw,38px);line-height:1.15}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
-.setup{padding:18px 18px 20px;display:flex;flex-direction:column;gap:16px}
-.setup h2{font-size:17px}
-.setrow{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.setrow .lbl{display:flex;flex-direction:column;gap:2px}
-.setrow .lbl small{color:var(--muted);font-size:13px}
-.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
-.seg button{border:0;background:transparent;padding:6px 13px;border-radius:999px;font-size:14px;color:var(--ink-2);line-height:1.2}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:700}
-.btn{border:1px solid var(--line-2);background:var(--surface);padding:11px 18px;border-radius:var(--r-s);font-size:15px;font-weight:700;line-height:1.2}
+.btn{border:1px solid var(--line-2);background:var(--surface);padding:10px 16px;border-radius:var(--r-s);
+  font-size:14.5px;font-weight:700;line-height:1.2}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2);color:var(--on-accent)}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.sections{display:flex;flex-direction:column;gap:10px}
-.test-list{display:flex;flex-direction:column;gap:10px}
-.test-card{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;text-align:left;
-  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:14px 16px;
-  box-shadow:var(--shadow);transition:border-color .12s,transform .12s}
-.test-card:hover{border-color:var(--accent);transform:translateY(-1px)}
-.test-card .tc-n{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:10px;
-  background:var(--accent-tint);color:var(--accent);font-family:var(--serif);font-weight:700;font-size:19px}
-.test-card .tc-main{min-width:0;display:flex;flex-direction:column;gap:3px}
-.test-card .tc-title{font-family:var(--serif);font-weight:700;font-size:18px;line-height:1.2}
-.test-card .tc-meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.test-card .tc-go{font-size:20px;color:var(--muted);flex:none}
-.test-card:hover .tc-go{color:var(--accent)}
-.chip{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--surface-2);
-  color:var(--ink-2);border:1px solid var(--line);letter-spacing:.01em}
-.chip.done{background:var(--ok-tint);color:var(--ok);border-color:var(--ok-line)}
-.chip.resume{background:var(--flag-tint);color:var(--flag);border-color:var(--flag-line)}
-.qimg{margin:0;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden;background:var(--surface-2)}
-.qimg img{display:block;width:100%;height:auto;max-height:min(70vh,560px);object-fit:contain}
-.idform{display:flex;flex-direction:column;gap:14px;padding:20px}
-.idform h2{font-size:18px}
-.idform label{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:700;color:var(--ink-2)}
-.idform input{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--surface);
-  border:1px solid var(--line-2);border-radius:var(--r-s);padding:10px 12px;width:100%}
-.idform input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
-.idform .err{font-size:13px;color:var(--bad);font-weight:700}
-.sendbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;padding:12px 15px;
-  border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface-2)}
-.sendbox.ok{background:var(--ok-tint);border-color:var(--ok-line);color:var(--ok)}
-.sendbox.bad{background:var(--bad-tint);border-color:var(--bad-line);color:var(--bad)}
-.sendbox b{font-weight:700}
-.sendbox code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
-  background:var(--surface);border:1px solid var(--line-2);border-radius:5px;padding:2px 6px;
-  color:var(--ink);overflow-wrap:anywhere}
-.tb-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}
-.sec{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface)}
-.sec .n{font-family:var(--serif);color:var(--accent);font-weight:700}
-.sec .d{font-size:13.5px;color:var(--muted)}
-.sec .p{font-size:13px;color:var(--ink-2);white-space:nowrap}
-.note{font-size:13.5px;color:var(--muted);max-width:62ch}
-
-/* ---------- topbar ---------- */
-.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
-.topbar-in{max-width:820px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
-.count{font-size:14px;font-weight:700;white-space:nowrap}
-.count small{color:var(--muted);font-weight:400}
-.bar{flex:1;height:6px;background:var(--surface-3);border-radius:99px;overflow:hidden;min-width:40px}
-.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .25s ease}
-.timer{font-size:15px;font-weight:700;white-space:nowrap;padding:3px 9px;border-radius:var(--r-s);background:var(--surface-2);border:1px solid var(--line)}
-.timer.low{color:var(--bad);background:var(--bad-tint);border-color:var(--bad-line)}
-.icon-btn{border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-s);padding:6px 11px;font-size:13.5px;font-weight:700;line-height:1.3}
-.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
-
-/* ---------- quiz ---------- */
-.quiz{display:grid;grid-template-columns:1fr;gap:20px;padding-block:22px 40px;align-items:start}
-@media(min-width:900px){.quiz{grid-template-columns:1fr 208px}}
-.qcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
-.qhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--accent-tint);color:var(--accent);border:1px solid transparent;letter-spacing:.01em}
-.badge.multi{background:var(--flag-tint);color:var(--flag);border-color:var(--flag-line)}
-.badge.match{background:var(--surface-3);color:var(--ink-2)}
-.qtext{font-family:var(--serif);font-size:clamp(18px,3.4vw,21px);line-height:1.4}
-details.ctx{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r-s);background:var(--surface-2);padding:0}
-details.ctx>summary{cursor:pointer;padding:10px 14px;font-weight:700;font-size:14px;list-style:none;display:flex;gap:8px;align-items:center}
-details.ctx>summary::-webkit-details-marker{display:none}
-details.ctx>summary::before{content:"▸";color:var(--accent);font-size:12px}
-details.ctx[open]>summary::before{content:"▾"}
-details.ctx .ctx-body{padding:0 14px 13px;font-size:14.5px;color:var(--ink-2);line-height:1.62}
-.opts{display:flex;flex-direction:column;gap:8px}
-.opt{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-s);padding:11px 13px;line-height:1.45;transition:border-color .12s,background .12s}
-.opt:hover{border-color:var(--accent)}
-.opt-static{cursor:default;background:var(--surface-2);border-style:dashed}
-.opt-static:hover{border-color:var(--line-2)}
-.opt .k{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line-2);font-size:13.5px;font-weight:700;color:var(--ink-2);background:var(--surface-2)}
-.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-tint)}
-.opt[aria-pressed="true"] .k{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.opt .t{min-width:0;overflow-wrap:anywhere}
-.match-row{border:1px solid var(--line);border-radius:var(--r-s);padding:11px 13px;display:flex;flex-direction:column;gap:9px;background:var(--surface-2)}
-.match-row .m-lbl{font-family:var(--serif);font-weight:700;font-size:16.5px}
-.keys{display:flex;gap:7px;flex-wrap:wrap}
-.key{width:38px;height:36px;border-radius:var(--r-s);border:1px solid var(--line-2);background:var(--surface);font-weight:700;font-size:14.5px;display:grid;place-items:center}
-.key:hover{border-color:var(--accent)}
-.key[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.key.ok{background:var(--ok-tint);border-color:var(--ok);color:var(--ok)}
-.key.bad{background:var(--bad-tint);border-color:var(--bad);color:var(--bad)}
-.scoring{font-size:12.5px;line-height:1.5;color:var(--muted);border-left:2px solid var(--line-2);padding-left:10px}
-.qfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:2px}
-.qfoot .spacer{flex:1}
-.flagbtn[aria-pressed="true"]{background:var(--flag-tint);border-color:var(--flag-line);color:var(--flag)}
-
-/* ---------- navigator ---------- */
-.nav-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:11px}
-@media(max-width:899px){.nav-panel[hidden]{display:none}.nav-panel{order:-1}}
-@media(min-width:900px){.nav-panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px)}.nav-panel[hidden]{display:flex}}
-.nav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:6px}
-.cell{aspect-ratio:1;min-width:0;border-radius:6px;border:1px solid var(--line-2);background:var(--surface);font-size:13px;font-weight:700;display:grid;place-items:center;padding:0}
-.cell.done{background:var(--accent-tint);border-color:var(--accent);color:var(--accent)}
-.cell.flagged{background:var(--flag-tint);border-color:var(--flag-line);color:var(--flag)}
-.cell.now{outline:2px solid var(--accent);outline-offset:1px}
-.cell.ok{background:var(--ok-tint);border-color:var(--ok-line);color:var(--ok)}
-.cell.part{background:var(--flag-tint);border-color:var(--flag-line);color:var(--flag)}
-.cell.bad{background:var(--bad-tint);border-color:var(--bad-line);color:var(--bad)}
-.legend{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted)}
-.legend span{display:flex;align-items:center;gap:7px}
-.dot{width:11px;height:11px;border-radius:3px;border:1px solid var(--line-2);flex:none}
-.dot.done{background:var(--accent-tint);border-color:var(--accent)}
-.dot.flagged{background:var(--flag-tint);border-color:var(--flag-line)}
-.hint{font-size:12.5px;color:var(--muted);line-height:1.5}
-kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--ink-2)}
-
-/* ---------- result ---------- */
-.result{padding-block:36px 48px;display:flex;flex-direction:column;gap:24px}
-.score{display:flex;flex-wrap:wrap;align-items:flex-end;gap:22px 32px;padding:22px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
-.score .big{font-family:var(--serif);font-size:clamp(44px,11vw,66px);line-height:.95;letter-spacing:-.02em}
-.score .big small{font-size:.42em;color:var(--muted);font-weight:400;letter-spacing:0}
-.score .verdict{font-family:var(--serif);font-size:20px}
-.score .meta{color:var(--muted);font-size:14px}
-.ring{--p:0;width:96px;height:96px;flex:none;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) calc(var(--p)*1%), var(--surface-3) 0)}
-.ring i{width:74px;height:74px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:19px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px}
-.tile{border:1px solid var(--line);border-radius:var(--r-s);padding:13px 15px;background:var(--surface);display:flex;flex-direction:column;gap:4px}
-.tile b{font-family:var(--serif);font-size:21px}
+.gate{padding:22px;display:flex;flex-direction:column;gap:14px;max-width:460px}
+.gate label{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:700;color:var(--ink-2)}
+.gate input{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line-2);border-radius:var(--r-s);padding:10px 12px}
+.gate input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
+.msg{font-size:13.5px;color:var(--bad);font-weight:700}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 16px}
+.filters select,.filters input{font:inherit;font-size:14px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line-2);border-radius:var(--r-s);padding:7px 10px}
+.filters .grow{flex:1;min-width:150px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.tile{border:1px solid var(--line);border-radius:var(--r-s);padding:14px 16px;background:var(--surface);
+  display:flex;flex-direction:column;gap:3px}
+.tile b{font-size:28px;line-height:1.05;font-family:var(--sans);font-weight:700}
 .tile span{font-size:13px;color:var(--muted)}
-.tile .sub{font-size:12.5px;color:var(--ink-2)}
-.review{display:flex;flex-direction:column;gap:12px}
-.rv{border:1px solid var(--line);border-left:4px solid var(--line-2);border-radius:var(--r-s);background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:9px}
-.rv.ok{border-left-color:var(--ok)}
-.rv.part{border-left-color:var(--flag)}
-.rv.bad{border-left-color:var(--bad)}
-.rv-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.rv-head .num{font-family:var(--serif);font-weight:700;color:var(--muted);font-size:14px}
-.rv-head .pts{margin-left:auto;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--surface-2);color:var(--ink-2)}
-.rv.ok .pts{background:var(--ok-tint);color:var(--ok)}
-.rv.bad .pts{background:var(--bad-tint);color:var(--bad)}
-.rv.part .pts{background:var(--flag-tint);color:var(--flag)}
-.rv-q{font-family:var(--serif);font-size:16.5px;line-height:1.4;flex-basis:100%}
-.rv-line{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14.5px;align-items:start;padding:7px 10px;border-radius:6px;background:var(--surface-2)}
-.rv-line.good{background:var(--ok-tint);color:var(--ok)}
-.rv-line.wrong{background:var(--bad-tint);color:var(--bad)}
-.rv-line .k{font-weight:700;white-space:nowrap}
-.rv-line .t{color:var(--ink-2)}
-.rv-line.good .t,.rv-line.wrong .t{color:inherit}
-.rv-empty{font-size:14px;color:var(--muted);font-style:italic}
-.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.modal-back{position:fixed;inset:0;background:rgba(8,18,16,.58);display:grid;place-items:center;z-index:100;padding:20px}
-.modal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;max-width:400px;width:100%;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
-.modal .m-text{font-family:var(--serif);font-size:17px;line-height:1.45}
-.modal .m-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:14px;font-weight:700;z-index:50;box-shadow:var(--shadow)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.card{padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{font-size:17px}
+.card .sub{font-size:13px;color:var(--muted);margin-top:-8px}
+.chart{display:flex;flex-direction:column;gap:7px}
+.row{display:grid;grid-template-columns:var(--lw,84px) 1fr auto;gap:10px;align-items:center;font-size:13.5px}
+.row .lbl{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{background:var(--surface-3);border-radius:4px;height:16px;position:relative;overflow:hidden}
+.track i{display:block;height:100%;border-radius:4px;background:var(--bar);min-width:2px}
+.row .val{color:var(--ink-2);font-weight:700;white-space:nowrap}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.qcell{border:1px solid var(--line);border-radius:6px;padding:6px 4px;display:flex;flex-direction:column;
+  align-items:center;gap:2px;background:var(--surface)}
+.qcell .n{font-size:11px;color:var(--muted);font-weight:700}
+.qcell .p{font-size:13px;font-weight:700}
+.qcell .swatch{width:100%;height:5px;border-radius:3px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-s)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:var(--surface-2);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;position:sticky;top:0}
+th:hover{color:var(--accent)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-block}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);font-size:14.5px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);align-items:center}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:3px;flex:none}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.toolbar .spacer{flex:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <!-- ============ START ============ -->
-  <section id="screen-start" class="start">
-    <div class="start-head">
-      <div class="rule"></div>
-      <p class="eyebrow">Ұлттық бірыңғай тестілеу · Бейіндік пән</p>
-      <h1>Биология сынағы</h1>
-      <p class="lede" id="home-lede"></p>
-    </div>
+  <div class="head">
+    <div class="rule"></div>
+    <p class="eyebrow">Мұғалімге арналған</p>
+    <h1>Нәтижелер дашборды</h1>
+    <p id="head-sub" style="color:var(--ink-2)"></p>
+  </div>
 
-    <div class="sections">
-      <div class="sec"><span class="n">1–30</span><span class="d">Бір дұрыс жауапты таңдау</span><span class="p">1 балл</span></div>
-      <div class="sec"><span class="n">31–35</span><span class="d">Сәйкестендіру — әр жұп бөлек бағаланады</span><span class="p">2 балл</span></div>
-      <div class="sec"><span class="n">36–40</span><span class="d">Бірнеше дұрыс жауап — ҰБТ ережесімен</span><span class="p">2 балл</span></div>
+  <section class="panel gate" id="gate">
+    <h2 style="font-size:17px">Кіру</h2>
+    <label for="in-key">Құпия сөз
+      <input id="in-key" type="password" autocomplete="current-password" placeholder="Apps Script ішіндегі SECRET_KEY">
+    </label>
+    <p class="msg" id="gate-msg" hidden></p>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="gate-go" type="button">Ашу</button>
     </div>
-
-    <div class="panel setup">
-      <h2>Сынақ параметрлері</h2>
-      <div class="setrow">
-        <span class="lbl">Уақыт<small>Таймер аяқталғанда сынақ автоматты тапсырылады</small></span>
-        <span class="seg" id="seg-time" role="group" aria-label="Уақыт">
-          <button type="button" data-min="40">40 мин</button>
-          <button type="button" data-min="60" aria-pressed="true">60 мин</button>
-          <button type="button" data-min="90">90 мин</button>
-          <button type="button" data-min="0">Шектеусіз</button>
-        </span>
-      </div>
-      <div class="setrow">
-        <span class="lbl">Араластыру<small>Сұрақтар мен жауап нұсқалары кездейсоқ ретпен шығады</small></span>
-        <span class="seg" id="seg-shuffle" role="group" aria-label="Араластыру">
-          <button type="button" data-val="0" aria-pressed="true">Өшірулі</button>
-          <button type="button" data-val="1">Қосулы</button>
-        </span>
-      </div>
-      <div class="setrow">
-        <span class="lbl">Режим<small>Жаттығу режимінде әр жауаптан кейін дұрысы бірден көрінеді</small></span>
-        <span class="seg" id="seg-mode" role="group" aria-label="Режим">
-          <button type="button" data-val="exam" aria-pressed="true">Емтихан</button>
-          <button type="button" data-val="practice">Жаттығу</button>
-        </span>
-      </div>
-    </div>
-
-    <div class="start-head" style="gap:6px">
-      <p class="eyebrow">Нұсқаны таңдаңыз</p>
-    </div>
-    <p class="note" id="who-line" hidden></p>
-    <div class="test-list" id="test-list"></div>
-
-    <p class="note">Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді. Пернетақтамен де жұмыс істейді: <kbd>1</kbd>–<kbd>6</kbd> нұсқаны таңдайды, <kbd>←</kbd> <kbd>→</kbd> сұрақтарды ауыстырады.</p>
+    <p style="font-size:13px;color:var(--muted)">Құпия сөз тек осы браузерде сақталады.</p>
   </section>
 
-  <!-- ============ ОҚУШЫ ДЕРЕКТЕРІ ============ -->
-  <section id="screen-id" class="start" hidden>
-    <div class="start-head">
-      <div class="rule"></div>
-      <p class="eyebrow" id="id-eyebrow"></p>
-      <h1>Өзіңіз туралы</h1>
-      <p class="lede">Нәтижеңіз мұғалімге осы атпен жіберіледі. Бір рет енгізсеңіз, келесі жолы есте қалады.</p>
+  <section id="app" hidden style="display:flex;flex-direction:column;gap:24px">
+    <div class="panel filters">
+      <select id="f-test"><option value="">Барлық нұсқа</option></select>
+      <select id="f-group"><option value="">Барлық сынып</option></select>
+      <input class="grow" id="f-name" type="search" placeholder="Аты-жөні бойынша іздеу">
+      <span class="spacer" style="flex:1"></span>
+      <button class="btn" id="b-refresh" type="button">Жаңарту</button>
+      <button class="btn" id="b-csv" type="button">CSV жүктеу</button>
+      <button class="btn" id="b-exit" type="button">Шығу</button>
     </div>
-    <div class="panel idform">
-      <label for="in-name">Аты-жөні
-        <input id="in-name" type="text" autocomplete="name" maxlength="120" placeholder="Мысалы: Айдана Серікқызы">
-      </label>
-      <label for="in-group">Сынып немесе тобыңыз
-        <input id="in-group" type="text" autocomplete="off" maxlength="60" placeholder="Мысалы: 11Ә">
-      </label>
-      <p class="err" id="id-err" hidden></p>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="id-go" type="button">Тестті бастау</button>
-        <button class="btn" id="id-back" type="button">Артқа</button>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="panel card">
+      <h2>Нұсқалар бойынша орташа нәтиже</h2>
+      <p class="sub">Әр нұсқаға қанша оқушы отырғаны және орташа пайызы.</p>
+      <div class="chart" id="ch-tests"></div>
+    </div>
+
+    <div class="panel card">
+      <h2>Сыныптар бойынша орташа нәтиже</h2>
+      <p class="sub">Оқушы енгізген сынып не топ бойынша топтастырылған.</p>
+      <div class="chart" id="ch-groups"></div>
+    </div>
+
+    <div class="panel card">
+      <h2>Балл таралымы</h2>
+      <p class="sub">Қанша тапсыру қай пайыз аралығына түскені.</p>
+      <div class="chart" id="ch-dist"></div>
+    </div>
+
+    <div class="panel card">
+      <h2>Сұрақтардың қиындығы</h2>
+      <p class="sub" id="q-sub"></p>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--good)"></i> 70%-дан жоғары</span>
+        <span><i class="dot" style="background:var(--warn)"></i> 40–70%</span>
+        <span><i class="dot" style="background:var(--crit)"></i> 40%-дан төмен</span>
+        <span>· әр шаршыда дұрыс жауап пайызы жазылған</span>
       </div>
+      <div class="qgrid" id="ch-q"></div>
+      <div id="q-hard"></div>
+    </div>
+
+    <div class="panel card">
+      <h2>Тапсырғандар</h2>
+      <p class="sub" id="t-sub"></p>
+      <div class="tablewrap"><table id="tbl">
+        <thead><tr>
+          <th data-k="at">Уақыты</th><th data-k="name">Аты-жөні</th><th data-k="group">Сынып</th>
+          <th data-k="testTitle">Нұсқа</th><th data-k="score">Балл</th><th data-k="pct">%</th>
+          <th data-k="seconds">Уақыт</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table></div>
     </div>
   </section>
-
-  <!-- ============ QUIZ ============ -->
-  <section id="screen-quiz" hidden>
-    <div class="quiz">
-      <div class="qcard" id="qcard"></div>
-      <aside class="nav-panel" id="navpanel" hidden>
-        <p class="eyebrow">Сұрақтар картасы</p>
-        <div class="nav-grid" id="navgrid"></div>
-        <div class="legend">
-          <span><i class="dot done"></i> жауап берілді</span>
-          <span><i class="dot flagged"></i> белгіленген</span>
-        </div>
-        <p class="hint" id="navhint"></p>
-      </aside>
-    </div>
-  </section>
-
-  <!-- ============ RESULT ============ -->
-  <section id="screen-result" class="result" hidden></section>
 </div>
 
 <script id="quiz-data" type="application/json">{"title":"Биология ҰБТ сынағы","tests":[{"slug":"test2","title":"2-тест","total":50,"questions":[{"n":1,"type":"single","q":"Қабықшасы жұқа, жасушалары ұсақ, жасушалар тығыз орналасқан ұлпа","answer":"A","points":1,"options":[{"id":"A","text":"Түзуші"},{"id":"B","text":"Жабын"},{"id":"C","text":"Бөліп шығарушы"},{"id":"D","text":"Өткізгіш"}]},{"n":2,"type":"single","q":"Жел арқылы айқас тозаңданатын өсімдіктер","answer":"C","points":1,"options":[{"id":"A","text":"Алма, шие"},{"id":"B","text":"Лимон, асқабақ"},{"id":"C","text":"Қандыағаш, емен"},{"id":"D","text":"Шаған, асқабақ"}]},{"n":3,"type":"single","q":"Картоп түйнегінде болатын көмірсу","answer":"C","points":1,"options":[{"id":"A","text":"Целлюлоза"},{"id":"B","text":"Гликоген"},{"id":"C","text":"Крахмал"},{"id":"D","text":"Глюкан"}]},{"n":4,"type":"single","q":"Қосмекенділердің дернәсілдері немен тыныс алады","answer":"C","points":1,"options":[{"id":"A","text":"Өкпемен"},{"id":"B","text":"Ылғал терісімен"},{"id":"C","text":"Желбезегімен"},{"id":"D","text":"Кеңірдегімен"}]},{"n":5,"type":"single","q":"Қырықжапырақтәрізділердің жапырағының астыңғы жағында спорангийлердің жиынтығы","answer":"B","points":1,"options":[{"id":"A","text":"Спорофит"},{"id":"B","text":"Сорус"},{"id":"C","text":"Микроспоралар"},{"id":"D","text":"Мегаспоралар"}]},{"n":6,"type":"single","q":"Қан арнасынан тыс буын,плевра сұйықтығында зиянды бөлшектерді жоятын лейкоцит типі","answer":"D","points":1,"options":[{"id":"A","text":"Лимфоцит"},{"id":"B","text":"Нейтрофил"},{"id":"C","text":"Базофил"},{"id":"D","text":"Моноцит"}]},{"n":7,"type":"single","q":"Бөліну ұршығын қалыптастырушы","answer":"A","points":1,"options":[{"id":"A","text":"Жасуша орталығы"},{"id":"B","text":"Центромера"},{"id":"C","text":"Центроиль"},{"id":"D","text":"Рибосомалар"}]},{"n":8,"type":"single","q":"IgG ға тән қатарды белгіле","answer":"C","points":1,"options":[{"id":"A","text":"Плацентадан қанға өте алмайды"},{"id":"B","text":"Гельминтозды, протозойлы аурулар кезінде түзіледі"},{"id":"C","text":"Баяу аллергиялық реакция тудырады"},{"id":"D","text":"Миеломалық ауру кезінде мөлшері артады"}]},{"n":9,"type":"single","q":"Бас және жамбас сүйектері не арқылы байланысқан","answer":"A","points":1,"options":[{"id":"A","text":"Сүйек жігі"},{"id":"B","text":"Шеміршек"},{"id":"C","text":"Буын"},{"id":"D","text":"Жартылай буын"}]},{"n":10,"type":"single","q":"Көздегі іркілдек, тығыз желеге ұқсас зат","answer":"C","points":1,"options":[{"id":"A","text":"Алдыңғы камера"},{"id":"B","text":"Көз көпіршігі"},{"id":"C","text":"Шыны тәрізді дене"},{"id":"D","text":"Алдыңғы камера"}]},{"n":11,"type":"single","q":"Суда еріген оттегіні бүкіл денесімен сіңіру арқылы, диффузды жолмен тыныс алатын организм","answer":"D","points":1,"options":[{"id":"A","text":"Шұбалшаң"},{"id":"B","text":"Көпқылтанды құрт"},{"id":"C","text":"Шаяндар"},{"id":"D","text":"Амеба"}]},{"n":12,"type":"single","q":"Ретті полимерді белгіле","answer":"B","points":1,"options":[{"id":"A","text":"Нуклеин қышқылы"},{"id":"B","text":"Целлюлоза"},{"id":"C","text":"Гликоген"},{"id":"D","text":"Нәруыз"}]},{"n":13,"type":"single","q":"Жыланның жүрегінің ерекшелігі","answer":"B","points":1,"options":[{"id":"A","text":"Жүрегі 4 қуысты"},{"id":"B","text":"Жартылай пердемен бөлінген"},{"id":"C","text":"Басқа омыртқалылар секілді жарты ай тәрізді қақпақшалары болмайды"},{"id":"D","text":"Жүрегі қуыстарға бөлінбеген"}]},{"n":14,"type":"single","q":"Хромосомалары бояу, микроскоппен көру әдісі","answer":"D","points":1,"options":[{"id":"A","text":"Биохимиялық"},{"id":"B","text":"Генеологиялық"},{"id":"C","text":"Иммуногенетикалық"},{"id":"D","text":"Цитогенетикалық"}]},{"n":15,"type":"single","q":"1 моль глюкоза ыдырағанда қанша кДж энергия бөлінеді:","answer":"B","points":1,"options":[{"id":"A","text":"1500"},{"id":"B","text":"1162"},{"id":"C","text":"1800"},{"id":"D","text":"61,2"}]},{"n":16,"type":"single","q":"Қылқанжапырақтыларға жатады","answer":"A","points":1,"options":[{"id":"A","text":"Шырша"},{"id":"B","text":"Жүгері"},{"id":"C","text":"Лалагүлтұқымдастар"},{"id":"D","text":"Бұршақ"}]},{"n":17,"type":"single","q":"Иіс және дәм сезу орталығы орналасқан","answer":"B","points":1,"options":[{"id":"A","text":"Төбе және маңдай бөліктерінің шегінде"},{"id":"B","text":"Төбе және самай бөліктердің шегінде"},{"id":"C","text":"Оң жақ ми сыңарларында"},{"id":"D","text":"Солғын дене мен төмпешікасты аймақта"}]},{"n":18,"type":"single","q":"Бұл кезде теріде немесе сілемейлі қабықта (мұрында) мөлдір сұйықтыққа толы топталған көпіршіктер түзіледі","answer":"B","points":1,"options":[{"id":"A","text":"Сифилис"},{"id":"B","text":"Герпес"},{"id":"C","text":"Гонорея"},{"id":"D","text":"Дифтерия"}]},{"n":19,"type":"single","q":"Хромосомаға жалғасу немесе тігілу","answer":"D","points":1,"options":[{"id":"A","text":"Делеция"},{"id":"B","text":"Транзиция"},{"id":"C","text":"Трансверсия"},{"id":"D","text":"Инсерция"}]},{"n":20,"type":"single","q":"Бағытын өзгертпейтін нуклеотидтердің алмасуы","answer":"B","points":1,"options":[{"id":"A","text":"Делеция"},{"id":"B","text":"Транзиция"},{"id":"C","text":"Трансверсия"},{"id":"D","text":"Инсерция"}]},{"n":21,"type":"single","q":"Инверсия дегеніміз не","answer":"B","points":1,"options":[{"id":"A","text":"хромосоманың белгілі бір бөлігінің екі еселенуі"},{"id":"B","text":"хромосома бөлігінің 180 гр бұрылуына байланысты гендердің орналасу ретінің өзгеруі"},{"id":"C","text":"хромосоманың бір бөлігінің үзіліп түсіп қалуы"},{"id":"D","text":"хромосома ұшының жетіспеушілігі"}]},{"n":22,"type":"single","q":"Ұлудененің қызметі","answer":"D","points":1,"options":[{"id":"A","text":"Құлық бездерін түзу"},{"id":"B","text":"Ортаңғы құлақта орналасқан дыбысты өткізеді"},{"id":"C","text":"Тепе теңдікті қамтамасыз етеді және миға кальций рецепторы арқылы миға сигнал жібереді"},{"id":"D","text":"Механикалық тербелісті жүйке импульсі түрінде миға жеткізеді"}]},{"n":23,"type":"single","q":"Көмірсулардың артық мөлшері жиналады","answer":"B","points":1,"options":[{"id":"A","text":"Бүйректе"},{"id":"B","text":"Бауырда"},{"id":"C","text":"Ми жасушаларында"},{"id":"D","text":"Жатырда, қоректік орта жасауға"}]},{"n":24,"type":"single","q":"Қан мен су мөлшерін реттейтін гормон","answer":"C","points":1,"options":[{"id":"A","text":"Адреналин"},{"id":"B","text":"Вазопрессин"},{"id":"C","text":"Ренин"},{"id":"D","text":"Антидиуретикалық гормон"}]},{"n":25,"type":"single","q":"Фотосинтездеуші бактерияның зияны","answer":"B","points":1,"options":[{"id":"A","text":"Топырақты ластап, басқа өсімдіктердің өнуіне кедергі жасайды"},{"id":"B","text":"Су қоймаларын ластайды немесе гүлдетеді"},{"id":"C","text":"Топырақтағы тыңайтқыштарды құртады"},{"id":"D","text":"Зиянды сұйықтық бөлу арқылы, өсімдіктерді улайды"}]},{"n":26,"type":"single","q":"Қуыстар мен иірім өзекшелерден түзілген күрделі жүйе","answer":"B","points":1,"options":[{"id":"A","text":"Вестибулярлы аппарат"},{"id":"B","text":"Шытырман"},{"id":"C","text":"Ұлудене"},{"id":"D","text":"Евстахий түтігі"}],"context":{"title":"Есту мүшесі – құлақ","body":"Құлақ – адамның бес сезім мүшесінің бірі, есту мен тепе-теңдікті сақтау қызметін атқаратын ерекше орган. Ол сыртқы ортадағы дыбыстық толқындарды қабылдап, оларды жүйке сигналдарына айналдырады. Сонымен қатар, құлақ ішкі құлақтағы вестибулярлық аппарат арқылы адамның тепе-теңдігін сақтауға көмектеседі."}},{"n":27,"type":"single","q":"Дыбыс тербелісінің өту жолдарын ретімен орналастырыңыз","answer":"D","points":1,"options":[{"id":"A","text":"есту жолы, есту сүйекшелері, дабыл жарғағы, сопақ терезе жарғақ, ұлудене, рецептор"},{"id":"B","text":"есту жолы, дабыл жарғағы, сопақ терезе жарғақ, ұлудене, есту сүйекшелері, рецептор"},{"id":"C","text":"есту жолы, дабыл жарғағы, сопақ терезе жарғақ, есту сүйекшелері, ұлудене, рецептор"},{"id":"D","text":"есту жолы, дабыл жарғағы, есту сүйекшелері, сопақ терезе жарғақ, ұлудене, рецептор"}],"context":{"title":"Есту мүшесі – құлақ","body":"Құлақ – адамның бес сезім мүшесінің бірі, есту мен тепе-теңдікті сақтау қызметін атқаратын ерекше орган. Ол сыртқы ортадағы дыбыстық толқындарды қабылдап, оларды жүйке сигналдарына айналдырады. Сонымен қатар, құлақ ішкі құлақтағы вестибулярлық аппарат арқылы адамның тепе-теңдігін сақтауға көмектеседі."}},{"n":28,"type":"single","q":"Мұрын жұтқыншақпен байланысқан, ауа алмасқанда ашылатын қуыс","answer":"A","points":1,"options":[{"id":"A","text":"Есту түтігі"},{"id":"B","text":"Дабыл жарғағы"},{"id":"C","text":"Құлақ қалқаны"},{"id":"D","text":"Есту жолы"}],"context":{"title":"Есту мүшесі – құлақ","body":"Құлақ – адамның бес сезім мүшесінің бірі, есту мен тепе-теңдікті сақтау қызметін атқаратын ерекше орган. Ол сыртқы ортадағы дыбыстық толқындарды қабылдап, оларды жүйке сигналдарына айналдырады. Сонымен қатар, құлақ ішкі құлақтағы вестибулярлық аппарат арқылы адамның тепе-теңдігін сақтауға көмектеседі."}},{"n":29,"type":"single","q":"Ішкі құлақ қайда орналасқан","answer":"A","points":1,"options":[{"id":"A","text":"Самайда"},{"id":"B","text":"Төбеде"},{"id":"C","text":"Көмкермеде"},{"id":"D","text":"Орталық жүлгеде"}],"context":{"title":"Есту мүшесі – құлақ","body":"Құлақ – адамның бес сезім мүшесінің бірі, есту мен тепе-теңдікті сақтау қызметін атқаратын ерекше орган. Ол сыртқы ортадағы дыбыстық толқындарды қабылдап, оларды жүйке сигналдарына айналдырады. Сонымен қатар, құлақ ішкі құлақтағы вестибулярлық аппарат арқылы адамның тепе-теңдігін сақтауға көмектеседі."}},{"n":30,"type":"single","q":"Қай құлақ бөлігі дыбыс тербелістерін жүйке импульстарына айналдырады?","answer":"B","points":1,"options":[{"id":"A","text":"Дабыл жарғағы"},{"id":"B","text":"Ұлулы дене"},{"id":"C","text":"Балғашық"},{"id":"D","text":"Сыртқы құлақ қалқаны"}],"context":{"title":"Есту мүшесі – құлақ","body":"Құлақ – адамның бес сезім мүшесінің бірі, есту мен тепе-теңдікті сақтау қызметін атқаратын ерекше орган. Ол сыртқы ортадағы дыбыстық толқындарды қабылдап, оларды жүйке сигналдарына айналдырады. Сонымен қатар, құлақ ішкі құлақтағы вестибулярлық аппарат арқылы адамның тепе-теңдігін сақтауға көмектеседі."}},{"n":31,"type":"match","q":"Сәйкестендір","items":[{"text":"Липаза","answer":"B"},{"text":"Амилаза","answer":"C"}],"points":2,"options":[{"id":"A","text":"Мальтозаның ыдырауын катализдейді"},{"id":"B","text":"Майды ыдыратады"},{"id":"C","text":"Крахмалды ыдыратады"},{"id":"D","text":"Нәруыздарды ыдыратады"}]},{"n":32,"type":"match","q":"Сәйкестендір","items":[{"text":"Никотин қышқылы","answer":"A"},{"text":"Цианкобаламин","answer":"C"}],"points":2,"options":[{"id":"A","text":"Пеллагра"},{"id":"B","text":"Ақшам соқыр"},{"id":"C","text":"Қатерлі анемия"},{"id":"D","text":"Рахит"}]},{"n":33,"type":"match","q":"Сәйкестендір","items":[{"text":"IgM","answer":"A"},{"text":"IgE","answer":"B"}],"points":2,"options":[{"id":"A","text":"Аллергиялық реакцияға қатыспайды, плацентадан өте алмайды"},{"id":"B","text":"Гельминтозды, протозойлы ауруларда қорғаныс рөлін атқарады."},{"id":"C","text":"Адам миеломалық ауруларға ұшырағанда мөлшері артады"},{"id":"D","text":"Барлық антиденелердің 80%ын құрайды"}]},{"n":34,"type":"match","q":"Сәйкестендір","items":[{"text":"Қордағы көлем","answer":"D"},{"text":"Ауаның қосымша көлемі","answer":"C"}],"points":2,"options":[{"id":"A","text":"адам қайтыс болғаннан кейін де өкпеде қалатын ауа мөлшері"},{"id":"B","text":"адамның қалыпты тыныс алып шығаруы"},{"id":"C","text":"адам қалыпты тыныс алып, артынша терең тыныс алғанда"},{"id":"D","text":"бұл адам қалыпты тыныс шығарғаннан кейін шығаратын ауа мөлшері"}]},{"n":35,"type":"match","q":"Сәйкестендір","items":[{"text":"Бронхит","answer":"C"},{"text":"Бронхы демікпесі","answer":"B"}],"points":2,"options":[{"id":"A","text":"ауатамшылы жолмен тыныс алу мүшелері арқылы берілетін вирустық жұқпалы ауру"},{"id":"B","text":"бронхылардың күрт тарылуынан (спазм) байқалатын созылмалы қабыну"},{"id":"C","text":"ауру тудыратын микроағзалардың әсерінен бронхының (көбінесе жоғары тыныс жолдарының) қабынуы"},{"id":"D","text":"қоздырушысы - кох таяқшасы"}]},{"n":36,"type":"multi","q":"Тыныс алу кезіндегі өзгерістер","answer":["B","C","D"],"points":2,"options":[{"id":"A","text":"Кеуде қуысының көлемі кішірейеді"},{"id":"B","text":"Көкет төмен түседі"},{"id":"C","text":"Өкпедегі қысым төмендейді"},{"id":"D","text":"Қабырғалар көтеріледі"},{"id":"E","text":"Көкет жоғары көтеріледі"},{"id":"F","text":"Өкпедегі қысым көтеріледі"}]},{"n":37,"type":"multi","q":"Асқазан ішек жолының қауіпті аурулары","answer":["C","D","E"],"points":2,"options":[{"id":"A","text":"Дифтерия"},{"id":"B","text":"Герпес"},{"id":"C","text":"Ішсүзегі"},{"id":"D","text":"Тиф"},{"id":"E","text":"Тышқақ"},{"id":"F","text":"Күл"}]},{"n":38,"type":"multi","q":"Ашық қан айналым жүйесіне тән","answer":["A","C","E"],"points":2,"options":[{"id":"A","text":"Буынаяқтыларға тән"},{"id":"B","text":"Барлық омыртқалы жануарларға тән"},{"id":"C","text":"Қан дене қуысына төгіледі"},{"id":"D","text":"Құстарға тән"},{"id":"E","text":"Ұлуларға тән"},{"id":"F","text":"Қан дене куысына төгілмейді"}]},{"n":39,"type":"multi","q":"Түйінді жүйке жүйесі қандай бөлімдерден тұрады?","answer":["A","D","E"],"points":2,"options":[{"id":"A","text":"Жұтқыншакүсті жүйке түйіндері"},{"id":"B","text":"Ретсіз бүкіл денеге тараган жүйке жасушалары"},{"id":"C","text":"Жұтқыншақманы жүйке буылтығы"},{"id":"D","text":"Құрсақ жүйке тізбегі"},{"id":"E","text":"Жұтқыншақасты жүйке түйіндері"},{"id":"F","text":"Ми мен жұлын"}]},{"n":40,"type":"multi","q":"Талшықты жәндіктер","answer":["B","D"],"points":2,"options":[{"id":"A","text":"Амеба"},{"id":"B","text":"Трипоносома"},{"id":"C","text":"Инфузория"},{"id":"D","text":"Лямблия"},{"id":"E","text":"Аскарида"},{"id":"F","text":"Нематодтар"}]}]},{"slug":"test3","title":"3-тест","total":50,"questions":[{"n":1,"type":"single","q":"Жаппай қырылудан кейін, түрлерге күрт қалыптарына келуге көмектеседі","answer":"B","points":1,"options":[{"id":"A","text":"к стратегия"},{"id":"B","text":"r стратегия"},{"id":"C","text":"аралас стратегия"},{"id":"D","text":"с стратегия"}]},{"n":2,"type":"single","q":"Ішек бактериясының құрылымдары жойылуы кай процесс","answer":"B","points":1,"options":[{"id":"A","text":"Ароморфоз"},{"id":"B","text":"Дегенарация"},{"id":"C","text":"Дивергенция"},{"id":"D","text":"Идиоадаптация"}]},{"n":3,"type":"single","q":"Тилакоидтердің жиынтығын қалай атаймыз","answer":"C","points":1,"options":[{"id":"A","text":"Строма"},{"id":"B","text":"Ламелла"},{"id":"C","text":"Грана"},{"id":"D","text":"Люмен"}]},{"n":4,"type":"single","q":"Ұйқы безінен бөлінетін гормон","answer":"B","points":1,"options":[{"id":"A","text":"Ренин"},{"id":"B","text":"Инсулин"},{"id":"C","text":"Гликоген"},{"id":"D","text":"Кортикоид"}]},{"n":5,"type":"single","q":"Тамырдың өткізгіш шоқтары қайда орналасады","answer":"D","points":1,"options":[{"id":"A","text":"Тамырдың бірінші реттік қабығында"},{"id":"B","text":"Эпиблемада"},{"id":"C","text":"Тамыр оймақшасында"},{"id":"D","text":"Орталық цилиндрде"}]},{"n":6,"type":"single","q":"Бұл дәрумен жетіспесе адамда қатерлі анемия ауруы пайда болады","answer":"A","points":1,"options":[{"id":"A","text":"Цианкобаламин"},{"id":"B","text":"Токоферол"},{"id":"C","text":"Филлохинон"},{"id":"D","text":"Рибофлавин"}]},{"n":7,"type":"single","q":"Бауыр жасушалары мен ішек қабырғаларында А дәруменіне айналатын пигмент","answer":"D","points":1,"options":[{"id":"A","text":"Фикобилин"},{"id":"B","text":"Хлорофилл"},{"id":"C","text":"Фикоцианин"},{"id":"D","text":"Каротин"}]},{"n":8,"type":"single","q":"Бунақденелілер мен жорғалаушылардың шығару өнімі","answer":"B","points":1,"options":[{"id":"A","text":"Аммиак"},{"id":"B","text":"Зәр қышқылы"},{"id":"C","text":"Несепнәр"},{"id":"D","text":"Гуанин"}]},{"n":9,"type":"single","q":"Шала түрленіп дамитын организмдер","answer":"A","points":1,"options":[{"id":"A","text":"Шегіртке, тарақан"},{"id":"B","text":"Маса, инелік"},{"id":"C","text":"Қоңыз, құмырсқа"},{"id":"D","text":"Көбелек, шыбын"}]},{"n":10,"type":"single","q":"2 жүрекше және 1 қарыншадан тұратын омыртқасыз","answer":"B","points":1,"options":[{"id":"A","text":"Жүзім ұлуы"},{"id":"B","text":"Сегізаяқ"},{"id":"C","text":"Өрмекші"},{"id":"D","text":"Буылтық құрттар"}]},{"n":11,"type":"single","q":"Оң құлақша эндокардының астында орналасқан","answer":"C","points":1,"options":[{"id":"A","text":"Пуркинье талшығы"},{"id":"B","text":"Гис шоғы"},{"id":"C","text":"Ашофф Тавар"},{"id":"D","text":"Синоатриальдық түйін"}]},{"n":12,"type":"single","q":"Гис шоғы аяғының тармақталған ұшы","answer":"A","points":1,"options":[{"id":"A","text":"Пуркинье талшығы"},{"id":"B","text":"Гис шоғы"},{"id":"C","text":"Ашофф Тавар"},{"id":"D","text":"Синоатриальдық түйін"}]},{"n":13,"type":"single","q":"Спора түзетін грам оң бактерия","answer":"B","points":1,"options":[{"id":"A","text":"Сальмонелла"},{"id":"B","text":"Клостридия"},{"id":"C","text":"Стрептакокк"},{"id":"D","text":"Коринебактерия"}]},{"n":14,"type":"single","q":"Екі хроматидтен тұратын хромосома анық көрінетін кезең","answer":"A","points":1,"options":[{"id":"A","text":"Метафаза"},{"id":"B","text":"Профаза"},{"id":"C","text":"Телофаза"},{"id":"D","text":"Анафаза"}]},{"n":15,"type":"single","q":"Жарық қарашық арқылы өтіп қайда түседі","answer":"C","points":1,"options":[{"id":"A","text":"Шыны тәрізді дене"},{"id":"B","text":"Тор қабық"},{"id":"C","text":"Көзбұршақ"},{"id":"D","text":"Ақ қабық"}]},{"n":16,"type":"single","q":"Тамыр түкшелері орналасқан тамыр аймағы","answer":"A","points":1,"options":[{"id":"A","text":"Сору"},{"id":"B","text":"Өсу"},{"id":"C","text":"Бөліну"},{"id":"D","text":"Өткізу"}]},{"n":17,"type":"single","q":"Қалемше арқылы көбейетін бұталар","answer":"B","points":1,"options":[{"id":"A","text":"Қараағаш, үйеңкі"},{"id":"B","text":"Қарақат,жүзім"},{"id":"C","text":"Қалампыр,раушан"},{"id":"D","text":"Тұшала жүзім"}]},{"n":18,"type":"single","q":"Өсімдіктің жоғары қарай өсуі","answer":"D","points":1,"options":[{"id":"A","text":"Геотропизм"},{"id":"B","text":"Фототропизм"},{"id":"C","text":"Таксис"},{"id":"D","text":"Гелиотропизм"}]},{"n":19,"type":"single","q":"Гендік мутация әсерінен адамда қандай өзгерістер болуы мүмкін","answer":"A","points":1,"options":[{"id":"A","text":"Кейде бір ген өзгеруінен бірнеше белгіге жауап беруі мүмкін"},{"id":"B","text":"Қандай да болсын бір белгінің көрінуіне бірнеше (екі немесе үш төрт) аллельді емес гендердің бірігіп әсер етуі"},{"id":"C","text":"Бір ген екінші генді басып, оны жойып жібереді"},{"id":"D","text":"Бір геннің бірнеше нұсқалары немесе аллельдері болуы мүмкін"}]},{"n":20,"type":"single","q":"Айқас тозаңданатын өсімдіктердегі инбридинг","answer":"C","points":1,"options":[{"id":"A","text":"Түрішілік будандастыру"},{"id":"B","text":"Әріден будандастыру"},{"id":"C","text":"Ырықсыз тозаңдандыру"},{"id":"D","text":"Гетерозис"}]},{"n":21,"type":"single","q":"Парасимпаткалық жүйке жүйесінің орталықтары қай жерде орналасады?","answer":"C","points":1,"options":[{"id":"A","text":"Жұлынның мойын бөлімінен бет беліміне дейін"},{"id":"B","text":"Аралық ми, жұлынның бел және кеуде бөлімі"},{"id":"C","text":"Ортанғы ми, жұлынның сегізкөз бөлімі"},{"id":"D","text":"Жұлынның мойын бөлімі, сопакша ми"}]},{"n":22,"type":"single","q":"Ортаңғы ми жауап беретін рефлекстер","answer":"D","points":1,"options":[{"id":"A","text":"Байланыстырушы рефлекстері"},{"id":"B","text":"Шартсыз рефлекстер"},{"id":"C","text":"Шартты рефлекстер"},{"id":"D","text":"Бағдарлау рефлекстері"}]},{"n":23,"type":"single","q":"Ми мен жұлын арасында орналасқан ми бөлімі","answer":"A","points":1,"options":[{"id":"A","text":"Ми діңі"},{"id":"B","text":"Үлкен жартышарлар"},{"id":"C","text":"Мишық"},{"id":"D","text":"Кіші жартышарлар"}]},{"n":24,"type":"single","q":"Бір осьті буындардың пішіні","answer":"D","points":1,"options":[{"id":"A","text":"Ұршык тәрізді"},{"id":"B","text":"Ершік тәрізді"},{"id":"C","text":"Эпипс тәрізді"},{"id":"D","text":"Цилиндр тәрізді"}]},{"n":25,"type":"single","q":"Қысым артқан сайын бұлшықет ұзындығының өзгеруі арқылы жиырылуы","answer":"C","points":1,"options":[{"id":"A","text":"Изотоникалық"},{"id":"B","text":"Изометриялық"},{"id":"C","text":"Ауксотоникалық"},{"id":"D","text":"Кимографиялық"}]},{"n":26,"type":"single","q":"Қан және резус фактордың тұқым- құалайтын өзгерістерін зерттейтін әдіс?","answer":"B","points":1,"options":[{"id":"A","text":"Биохимиялық"},{"id":"B","text":"Иммуногенетикалық"},{"id":"C","text":"Популяциялық"},{"id":"D","text":"Цитогенетикалық"}],"context":{"title":"Адам генетикасын зерттеу әдістері","body":"Генетика – тұқым қуалау мен өзгергіштікті зерттейтін ғылым. Адам генетикасы адамның генетикалық ерекшеліктерін, тұқым қуалайтын ауруларын және олардың механизмдерін зерттейді. Бұл салада әртүрлі әдістер қолданылады, олардың әрқайсысы белгілі бір генетикалық құбылыстарды анықтауға көмектеседі. Адам генетикасын зерттеу әдістері тұқым қуалаушылықтың заңдылықтарын түсінуге, тұқым қуалайтын аурулардың алдын алуға және оларды емдеуге көмектеседі. Қазіргі заманғы генетикалық технологиялар болашақта медицинаның жаңа деңгейге көтерілуіне, гендік терапияның дамуына және адамның генетикалық мүмкіндіктерін кеңінен зерттеуге жол ашады."}},{"n":27,"type":"single","q":"Цитогенетикалық әдістегі зерттеу нысаны","answer":"D","points":1,"options":[{"id":"A","text":"шежіре"},{"id":"B","text":"егіздер"},{"id":"C","text":"генетикалық үйлесімділік"},{"id":"D","text":"хромосома"}],"context":{"title":"Адам генетикасын зерттеу әдістері","body":"Генетика – тұқым қуалау мен өзгергіштікті зерттейтін ғылым. Адам генетикасы адамның генетикалық ерекшеліктерін, тұқым қуалайтын ауруларын және олардың механизмдерін зерттейді. Бұл салада әртүрлі әдістер қолданылады, олардың әрқайсысы белгілі бір генетикалық құбылыстарды анықтауға көмектеседі. Адам генетикасын зерттеу әдістері тұқым қуалаушылықтың заңдылықтарын түсінуге, тұқым қуалайтын аурулардың алдын алуға және оларды емдеуге көмектеседі. Қазіргі заманғы генетикалық технологиялар болашақта медицинаның жаңа деңгейге көтерілуіне, гендік терапияның дамуына және адамның генетикалық мүмкіндіктерін кеңінен зерттеуге жол ашады."}},{"n":28,"type":"single","q":"Қандай нәруыз-фермент зақымдалғанын анықтауға мүмкіндік беретін әдіс","answer":"A","points":1,"options":[{"id":"A","text":"Биохимиялық"},{"id":"B","text":"Иммунологиялық"},{"id":"C","text":"Популяциялық"},{"id":"D","text":"Химиялық"}],"context":{"title":"Адам генетикасын зерттеу әдістері","body":"Генетика – тұқым қуалау мен өзгергіштікті зерттейтін ғылым. Адам генетикасы адамның генетикалық ерекшеліктерін, тұқым қуалайтын ауруларын және олардың механизмдерін зерттейді. Бұл салада әртүрлі әдістер қолданылады, олардың әрқайсысы белгілі бір генетикалық құбылыстарды анықтауға көмектеседі. Адам генетикасын зерттеу әдістері тұқым қуалаушылықтың заңдылықтарын түсінуге, тұқым қуалайтын аурулардың алдын алуға және оларды емдеуге көмектеседі. Қазіргі заманғы генетикалық технологиялар болашақта медицинаның жаңа деңгейге көтерілуіне, гендік терапияның дамуына және адамның генетикалық мүмкіндіктерін кеңінен зерттеуге жол ашады."}},{"n":29,"type":"single","q":"Ақпарат жинау шектеулі болуы қай әдістің кемшілігі","answer":"A","points":1,"options":[{"id":"A","text":"Генеологиялық"},{"id":"B","text":"Цитогенетикалық"},{"id":"C","text":"Егіздік"},{"id":"D","text":"Иммунологиялық"}],"context":{"title":"Адам генетикасын зерттеу әдістері","body":"Генетика – тұқым қуалау мен өзгергіштікті зерттейтін ғылым. Адам генетикасы адамның генетикалық ерекшеліктерін, тұқым қуалайтын ауруларын және олардың механизмдерін зерттейді. Бұл салада әртүрлі әдістер қолданылады, олардың әрқайсысы белгілі бір генетикалық құбылыстарды анықтауға көмектеседі. Адам генетикасын зерттеу әдістері тұқым қуалаушылықтың заңдылықтарын түсінуге, тұқым қуалайтын аурулардың алдын алуға және оларды емдеуге көмектеседі. Қазіргі заманғы генетикалық технологиялар болашақта медицинаның жаңа деңгейге көтерілуіне, гендік терапияның дамуына және адамның генетикалық мүмкіндіктерін кеңінен зерттеуге жол ашады."}},{"n":30,"type":"single","q":"Цитогенетикалық əдістің кемшілігі","answer":"D","points":1,"options":[{"id":"A","text":"онша анық емес есептеулер, өйткені тек мінсіз популяцияға арнап жасалған"},{"id":"B","text":"«біржақтылығы» белгінің пайда болу дəрежесінде генотиптің рөлін анықтайды"},{"id":"C","text":"тек нəруыздардың сəйкестігін анықтайды"},{"id":"D","text":"нүктелік мутацияны анықтауға болмайды"}],"context":{"title":"Адам генетикасын зерттеу әдістері","body":"Генетика – тұқым қуалау мен өзгергіштікті зерттейтін ғылым. Адам генетикасы адамның генетикалық ерекшеліктерін, тұқым қуалайтын ауруларын және олардың механизмдерін зерттейді. Бұл салада әртүрлі әдістер қолданылады, олардың әрқайсысы белгілі бір генетикалық құбылыстарды анықтауға көмектеседі. Адам генетикасын зерттеу әдістері тұқым қуалаушылықтың заңдылықтарын түсінуге, тұқым қуалайтын аурулардың алдын алуға және оларды емдеуге көмектеседі. Қазіргі заманғы генетикалық технологиялар болашақта медицинаның жаңа деңгейге көтерілуіне, гендік терапияның дамуына және адамның генетикалық мүмкіндіктерін кеңінен зерттеуге жол ашады."}},{"n":31,"type":"match","q":"Сәйкестендір","items":[{"text":"Люмен","answer":"D"},{"text":"Ламелла","answer":"A"}],"points":2,"options":[{"id":"A","text":"тилакоидтарды байланыстыратын құрылым"},{"id":"B","text":"хлоропласттың ішкі мембранасы"},{"id":"C","text":"хлоропласттың ішін толтырып тұратын сұйықтық"},{"id":"D","text":"тилакоидтың ішкі кеңістігі"}]},{"n":32,"type":"match","q":"Сәйкестендір","items":[{"text":"Гендік мутация","answer":"C"},{"text":"Геномдық мутация","answer":"B"}],"points":2,"options":[{"id":"A","text":"хромосомалардың пішіні мен көлемі өзгереді,"},{"id":"B","text":"хромосома санының өзгеруіне байланысты организмнің белгілері мен қасиеттерінде болатын өзгергіштік"},{"id":"C","text":"ДНҚ молекуласының белгілі бір бөлігінде нуклеотидтердің қатар тізбегінің өзгеруін айтады"},{"id":"D","text":"жасуша цитоплазмасында кездесетін плазмогендердің өзгеруінен туындайды"}]},{"n":33,"type":"match","q":"Сәйкестендір","items":[{"text":"Темекі жапырағында болатын алкалоид","answer":"D"},{"text":"Улы саңырауқұлақ бойында болатын алколоид","answer":"B"}],"points":2,"options":[{"id":"A","text":"Ацетилхолин"},{"id":"B","text":"Мускарин"},{"id":"C","text":"Кетохоламин"},{"id":"D","text":"Никотин"}]},{"n":34,"type":"match","q":"Сәйкестендір","items":[{"text":"Тироксин","answer":"A"},{"text":"Паратгормон","answer":"C"}],"points":2,"options":[{"id":"A","text":"адам семіреді, температурасы 35 градус, үнемі тоңады"},{"id":"B","text":"ағзаның иммундық қасиеті төмендейді"},{"id":"C","text":"кальций деңгейі азайып, фосфор мөлшері артады"},{"id":"D","text":"көкбауырдың мөлшері кішірейіп, антидене түзілмейді"}]},{"n":35,"type":"match","q":"Сәйкестендір","items":[{"text":"Холестерол","answer":"B"},{"text":"Фосфолипид","answer":"A"}],"points":2,"options":[{"id":"A","text":"Мембранаға иілгіштік қасиет береді"},{"id":"B","text":"Мембранаға қаттылық пен тұрақтылық береді"},{"id":"C","text":"Мембранадағы нәруыздармен бірге бөлініп шығады"},{"id":"D","text":"Мембрананың сыртқы липидтік қабатының барлық ұлпаларында болады"}]},{"n":36,"type":"multi","q":"Толық түрленіп дамитын ағзалар","answer":["A","C","F"],"points":2,"options":[{"id":"A","text":"Ара"},{"id":"B","text":"Дәуіт"},{"id":"C","text":"Шыбын"},{"id":"D","text":"Шегіртке"},{"id":"E","text":"Тарақан"},{"id":"F","text":"Көбелек"}]},{"n":37,"type":"multi","q":"Эдвардс синдромының белгі(лері)сі:","answer":["A","C","E"],"points":2,"options":[{"id":"A","text":"бас сүйегі, құлақтары кішкентай"},{"id":"B","text":"аяқ-қолы ұзын"},{"id":"C","text":"нәрестелердің салмағы жеңіл"},{"id":"D","text":"мойыны қысқа"},{"id":"E","text":"жақтары нашар дамыған"},{"id":"F","text":"бойлары аласа"}]},{"n":38,"type":"multi","q":"Грамтеріс бактерия","answer":["B","C","F"],"points":2,"options":[{"id":"A","text":"Бацилла"},{"id":"B","text":"Спирохета"},{"id":"C","text":"Сальмонелла"},{"id":"D","text":"Стафилакокк"},{"id":"E","text":"Клостридия"},{"id":"F","text":"Племорфтылар"}]},{"n":39,"type":"multi","q":"Партоногенез жолымен көбейетін өсімдіктер","answer":["B","C"],"points":2,"options":[{"id":"A","text":"Жүгері"},{"id":"B","text":"Бакбақ"},{"id":"C","text":"Темекі"},{"id":"D","text":"Емен"},{"id":"E","text":"Лимон"},{"id":"F","text":"Егістік бұршақ"}]},{"n":40,"type":"multi","q":"Өздігінен тозаңданатын өсімдіктер:","answer":["E","F"],"points":2,"options":[{"id":"A","text":"Шөптесін астықтұқымдастар"},{"id":"B","text":"Бақбақ"},{"id":"C","text":"Қызылша"},{"id":"D","text":"Емен"},{"id":"E","text":"Картоп"},{"id":"F","text":"Үрмебұршақ"}]}]},{"slug":"test4","title":"4-тест","total":50,"questions":[{"n":1,"type":"single","q":"Репродуктивті клондау кезінде не қалпына келтіріледі?","answer":"B","points":1,"options":[{"id":"A","text":"Жеке мүшелер"},{"id":"B","text":"Тұтас организм"},{"id":"C","text":"Генетикалық мутациялар"},{"id":"D","text":"Белгілі бір ақуыздар"}]},{"n":2,"type":"single","q":"Каннибализм қандай экологиялық құбылысқа жатады?","answer":"C","points":1,"options":[{"id":"A","text":"Комменсализм"},{"id":"B","text":"Мутуализм"},{"id":"C","text":"Жыртқыштық"},{"id":"D","text":"Паразитизм"}]},{"n":3,"type":"single","q":"Жартылай консервативті механизм қандай биологиялық процесте жүзеге асады?","answer":"B","points":1,"options":[{"id":"A","text":"Транскрипция"},{"id":"B","text":"ДНҚ репликациясы"},{"id":"C","text":"Трансляция"},{"id":"D","text":"Мутация"}]},{"n":4,"type":"single","q":"Өсімдікте суды жоғары қарай қандай ұлпа тасымалдайды?","answer":"B","points":1,"options":[{"id":"A","text":"Флоэма"},{"id":"B","text":"Ксилема"},{"id":"C","text":"Камбий"},{"id":"D","text":"Эпидермис"}]},{"n":5,"type":"single","q":"Адам терісінде қандай витамин синтезделеді?","answer":"C","points":1,"options":[{"id":"A","text":"Витамин A"},{"id":"B","text":"Витамин C"},{"id":"C","text":"Витамин D"},{"id":"D","text":"Витамин K"}]},{"n":6,"type":"single","q":"Адам ағзасында шеңбер тәрізді бұлшықеттер қай жерде орналасқан?","answer":"C","points":1,"options":[{"id":"A","text":"Қол және аяқ бұлшықеттерінде"},{"id":"B","text":"Жүрек бұлшықетінде"},{"id":"C","text":"Ауыз және көз аймағында"},{"id":"D","text":"Омыртқа бұлшықеттерінде"}]},{"n":7,"type":"single","q":"Жануарлар ағзасында электр құбылысының жүзеге асуы үшін қандай элементтер қажет?","answer":"C","points":1,"options":[{"id":"A","text":"Кальций, магний"},{"id":"B","text":"Темір, мыс"},{"id":"C","text":"Натрий, калий"},{"id":"D","text":"Фосфор, күкірт"}]},{"n":8,"type":"single","q":"Митоздың метафаза кезеңінде қандай процесс жүреді?","answer":"B","points":1,"options":[{"id":"A","text":"Ядро қабықшасы жойылады"},{"id":"B","text":"Хромосомалар экваторлық жазықтыққа жинақталады"},{"id":"C","text":"Хромосомалар екі полюске ажырайды"},{"id":"D","text":"Цитоплазма бөлінеді"}]},{"n":9,"type":"single","q":"Сүйек ұлпасын оттекпен және қоректік заттармен қамтамасыз ететін құрылым қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Остеоцит"},{"id":"B","text":"Остеон"},{"id":"C","text":"Оссеин"},{"id":"D","text":"Остеобласт"}]},{"n":10,"type":"single","q":"Айқаспалы ұрықтану тән","answer":"A","points":1,"options":[{"id":"A","text":"бауыраяқты ұлуларға"},{"id":"B","text":"басаяқты ұлуларға"},{"id":"C","text":"қосжақтаулы ұлуларға"},{"id":"D","text":"шұбалшаңдарға"}]},{"n":11,"type":"single","q":"Химиялық реакцияны тежейтін зат қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Катализатор"},{"id":"B","text":"Ингибитор"},{"id":"C","text":"Субстрат"},{"id":"D","text":"Активатор"}]},{"n":12,"type":"single","q":"Көру қабілеті үшін жауап беретін ми бөлігі қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Маңдай бөлігі"},{"id":"B","text":"Самай бөлігі"},{"id":"C","text":"Шүйде бөлігі"},{"id":"D","text":"Мишық"}]},{"n":13,"type":"single","q":"Ароморфоз дегеніміз не?","answer":"A","points":1,"options":[{"id":"A","text":"Организмдердің эволюциясы барысында пайда болатын күрделі құрылымдық өзгерістер"},{"id":"B","text":"Қоршаған ортаға бейімделудің жеке дара жүретін өзгерістері"},{"id":"C","text":"Организмдердің тіршілік ортасына байланысты ұсақ морфологиялық өзгерістері"},{"id":"D","text":"Генетикалық мутациялардың нәтижесінде пайда болатын өзгерістер"}]},{"n":14,"type":"single","q":"Өсімдіктерде тамыр түзілуі мен жапырақтың пайда болуын реттейтін фитогормон қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Ауксин"},{"id":"B","text":"Гиббереллин"},{"id":"C","text":"Цитокинин"},{"id":"D","text":"Абсциз қышқылы"}]},{"n":15,"type":"single","q":"Глюкокортикоидтар қандай процесті қамтамасыз етеді?","answer":"C","points":1,"options":[{"id":"A","text":"Көмірсулардың майларға айналуын"},{"id":"B","text":"Майлардың нәруыздарға айналуын"},{"id":"C","text":"Нәруыздардың көмірсуларға айналуын"},{"id":"D","text":"Көмірсулардың нәруыздарға айналуын"}]},{"n":16,"type":"single","q":"Пойкилотермді омыртқалы жануарлардың ерекшелігі қандай?","answer":"B","points":1,"options":[{"id":"A","text":"Денесінің температурасы тұрақты болады"},{"id":"B","text":"Денесінің температурасы сыртқы ортаға тәуелді өзгереді"},{"id":"C","text":"Денесін зат алмасу процесі арқылы жылытады"},{"id":"D","text":"Жылу реттелуі жүйке жүйесі арқылы қатаң бақыланады"}]},{"n":17,"type":"single","q":"Құрамында түзуші ұлпасы бар сабақтың бөлімі қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Сүрек"},{"id":"B","text":"Камбий"},{"id":"C","text":"Өзек"},{"id":"D","text":"Қабық"}]},{"n":18,"type":"single","q":"АаВвСс генотипінен қанша түрлі гамета түзіледі?","answer":"C","points":1,"options":[{"id":"A","text":"2"},{"id":"B","text":"4"},{"id":"C","text":"8"},{"id":"D","text":"16"}]},{"n":19,"type":"single","q":"Сору, жұту процесін реттейтін ми бөлімі қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Мишық"},{"id":"B","text":"Ортаңғы ми"},{"id":"C","text":"Сопақша ми"},{"id":"D","text":"Маңдай бөлігі"}]},{"n":20,"type":"single","q":"Қай дәруменнің жетіспеуі бедеулікке әкеледі?","answer":"C","points":1,"options":[{"id":"A","text":"Ретинол"},{"id":"B","text":"Кальциферол"},{"id":"C","text":"Токоферол"},{"id":"D","text":"Филлохинон"}]},{"n":21,"type":"single","q":"Бұлшықетте кальций иондары босап шығатын аймақ қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Миофибрилла"},{"id":"B","text":"Триада"},{"id":"C","text":"Саркоплазмалық ретикулум"},{"id":"D","text":"Т-жүйе"}]},{"n":22,"type":"single","q":"Жасушада «қоқыс жәшігі» қызметін атқаратын органоид қандай?","answer":"C","points":1,"options":[{"id":"A","text":"Лизосома"},{"id":"B","text":"Рибосома"},{"id":"C","text":"Вакуоль"},{"id":"D","text":"Гольджи кешені"}]},{"n":23,"type":"single","q":"Жүзім тәрізді бактерия шоғыры қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Стрептококк"},{"id":"B","text":"Диплококк"},{"id":"C","text":"Стафилококк"},{"id":"D","text":"Спирилла"}]},{"n":24,"type":"single","q":"Бүйрек астаушасы дегеніміз не?","answer":"A","points":1,"options":[{"id":"A","text":"Несепағар шығатын, ми қабатынан басталатын кішкентай қуыс"},{"id":"B","text":"Микроскопсыз көрінетін, бүйректің ішкі қабатында жиналған жіңішке жіпшелер."},{"id":"C","text":"Су мен тұз алмасуын реттейтін бөлік"},{"id":"D","text":"Бүйректегі зәр түзілетін нефрон бөлігі"}]},{"n":25,"type":"single","q":"Қанның ұюы үшін маңызды рөл атқаратын лейкоцит түрі қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Нейтрофил"},{"id":"B","text":"Эозинофил"},{"id":"C","text":"Базофил"},{"id":"D","text":"Лимфоцит"}]},{"n":26,"type":"single","q":"Адам неге таңға таяу оянады?","answer":"C","points":1,"options":[{"id":"A","text":"Мелатонин деңгейінің жоғарылауынан"},{"id":"B","text":"Инсулиннің күрт бөлінуінен"},{"id":"C","text":"Кортизол белсенді болатындықтан"},{"id":"D","text":"Адреналиннің төмендеуінен"}],"context":{"title":"Эндокринология контексті","body":"Арман 2 жылда қатты салмақ қосып, мектептегі тексеріс кезінде эндокринологқа кеңес берілді. Дәрігер оның ұйқы уақыты туралы сұрап, мелатониннің маңызын түсіндірді. Түнгі уақытта мелатонин бөлініп, оның жетіспеушілігі қартаюға әсер етеді."}},{"n":27,"type":"single","q":"Ұзақ өмір сүруге ықпал ететін гормон:","answer":"C","points":1,"options":[{"id":"A","text":"Адреналин"},{"id":"B","text":"Кортизол"},{"id":"C","text":"Мелатонин"},{"id":"D","text":"Тестостерон"}],"context":{"title":"Эндокринология контексті","body":"Арман 2 жылда қатты салмақ қосып, мектептегі тексеріс кезінде эндокринологқа кеңес берілді. Дәрігер оның ұйқы уақыты туралы сұрап, мелатониннің маңызын түсіндірді. Түнгі уақытта мелатонин бөлініп, оның жетіспеушілігі қартаюға әсер етеді."}},{"n":28,"type":"single","q":"Мелатонин қай уақытта белсенді бөлінеді?","answer":"D","points":1,"options":[{"id":"A","text":"06:00 – 10:00"},{"id":"B","text":"12:00 – 16:00"},{"id":"C","text":"18:00 – 22:00"},{"id":"D","text":"23:00 – 04:00"}],"context":{"title":"Эндокринология контексті","body":"Арман 2 жылда қатты салмақ қосып, мектептегі тексеріс кезінде эндокринологқа кеңес берілді. Дәрігер оның ұйқы уақыты туралы сұрап, мелатониннің маңызын түсіндірді. Түнгі уақытта мелатонин бөлініп, оның жетіспеушілігі қартаюға әсер етеді."}},{"n":29,"type":"single","q":"Эндокринолог дәрігер нені тексереді?","answer":"C","points":1,"options":[{"id":"A","text":"Жүрек жұмысы"},{"id":"B","text":"Ас қорыту жүйесі"},{"id":"C","text":"Гормоналды жүйе"},{"id":"D","text":"Орталық жүйке жүйесі"}],"context":{"title":"Эндокринология контексті","body":"Арман 2 жылда қатты салмақ қосып, мектептегі тексеріс кезінде эндокринологқа кеңес берілді. Дәрігер оның ұйқы уақыты туралы сұрап, мелатониннің маңызын түсіндірді. Түнгі уақытта мелатонин бөлініп, оның жетіспеушілігі қартаюға әсер етеді."}},{"n":30,"type":"single","q":"21 ғасыр адамдары ашушаң, мінезінде өзгерістер бар, бұл ауру қазіргі заманға тән. Ауру атауы:","answer":"B","points":1,"options":[{"id":"A","text":"Қант диабеті"},{"id":"B","text":"Депрессия"},{"id":"C","text":"Гипотиреоз"},{"id":"D","text":"Құтырма"}],"context":{"title":"Эндокринология контексті","body":"Арман 2 жылда қатты салмақ қосып, мектептегі тексеріс кезінде эндокринологқа кеңес берілді. Дәрігер оның ұйқы уақыты туралы сұрап, мелатониннің маңызын түсіндірді. Түнгі уақытта мелатонин бөлініп, оның жетіспеушілігі қартаюға әсер етеді."}},{"n":31,"type":"match","q":"Сәйкестендір","items":[{"text":"Фотосинтездің жарық фазасы","answer":"C"},{"text":"Фотосинтездің қараңғы фазасы","answer":"A"}],"points":2,"options":[{"id":"A","text":"Глюкоза түзіледі"},{"id":"B","text":"Сутек ыдырайды"},{"id":"C","text":"Су ыдырайды"},{"id":"D","text":"Сахарозаның түзілуі"}]},{"n":32,"type":"match","q":"Сәйкестендір","items":[{"text":"Сулалагүлі","answer":"D"},{"text":"Терек","answer":"B"}],"points":2,"options":[{"id":"A","text":"Тозаңдары аз, реңді"},{"id":"B","text":"Аталық ұзын жіпшелері төмен қарай иіліп тұрады"},{"id":"C","text":"Тозаңдары үлкен"},{"id":"D","text":"Тозаңы суда қалқып жүреді"}]},{"n":33,"type":"match","q":"Сәйкестендір","items":[{"text":"Өсімдіктің жоғары қарай өсуі","answer":"C"},{"text":"Мұртшалардың және өркен төбесінің қозғалысы","answer":"B"}],"points":2,"options":[{"id":"A","text":"Геотропизм"},{"id":"B","text":"Нутация"},{"id":"C","text":"Гелиотропизм"},{"id":"D","text":"Настия"}]},{"n":34,"type":"match","q":"Сәйкестендір","items":[{"text":"Тамырсабақ арқылы көбейетін","answer":"B"},{"text":"Мұртша арқылы көбейетін","answer":"A"}],"points":2,"options":[{"id":"A","text":"Құлпынай, бүлдірген"},{"id":"B","text":"Жалбыз, қаражидек"},{"id":"C","text":"Пияз, лалагүл"},{"id":"D","text":"Картоп, қарбыз"}]},{"n":35,"type":"match","q":"Сәйкестендір","items":[{"text":"Жеуге жарамды саңырауқұлақ","answer":"C"},{"text":"Жеуге жарамсыз саңырауқұлақ","answer":"D"}],"points":2,"options":[{"id":"A","text":"Сазқатпа, бозарамқұлақ"},{"id":"B","text":"Қайыңқұлақ, жалған түбіртек"},{"id":"C","text":"Ақсаңырауқұлақ, түлкіжем"},{"id":"D","text":"Көңілкеш, шыбынжұт"}]},{"n":36,"type":"multi","q":"Құрамында екі сақина бар","answer":["A","B"],"points":2,"options":[{"id":"A","text":"Аденин"},{"id":"B","text":"Гуанин"},{"id":"C","text":"Тимин"},{"id":"D","text":"Цитозин"},{"id":"E","text":"Урацил"},{"id":"F","text":"Метилцитозин"}]},{"n":37,"type":"multi","q":"Инулин қандай өсімдік құрамында болады","answer":["C","D","F"],"points":2,"options":[{"id":"A","text":"Бақытгүл"},{"id":"B","text":"Жалбыз"},{"id":"C","text":"Бақбақ"},{"id":"D","text":"Бөрікгүл"},{"id":"E","text":"Қаражидек"},{"id":"F","text":"Нарғызгүл"}]},{"n":38,"type":"multi","q":"Альфа глюкоза қалдығынан тұратын полисахарид","answer":["D","E"],"points":2,"options":[{"id":"A","text":"Целлюлоза"},{"id":"B","text":"Пектиндік заттар"},{"id":"C","text":"Инулин"},{"id":"D","text":"Крахмал"},{"id":"E","text":"Гликоген"},{"id":"F","text":"Муреин"}]},{"n":39,"type":"multi","q":"Қолдың еркін қозғалатын сүйектері","answer":["A","D"],"points":2,"options":[{"id":"A","text":"Кәрі жілік"},{"id":"B","text":"Жауырын"},{"id":"C","text":"Бұғана"},{"id":"D","text":"Токпан жілік"},{"id":"E","text":"Ортан жілік"},{"id":"F","text":"Шыбық"}]},{"n":40,"type":"multi","q":"Вестибуллярлы аппарат қандай бөліктерден тұрады?","answer":["A","C"],"points":2,"options":[{"id":"A","text":"3 жартылай иірім"},{"id":"B","text":"2 жартылай иірім"},{"id":"C","text":"2 капшык"},{"id":"D","text":"3 қапшық"},{"id":"E","text":"4 жартылай иірім:"},{"id":"F","text":"1 жартылай иірім"}]}]},{"slug":"test5","title":"5-тест","total":50,"questions":[{"n":1,"type":"single","q":"Бұлшықеттің жиырылуына қатысатын негізгі нәруыздар қандай?","answer":"B","points":1,"options":[{"id":"A","text":"Коллаген, эластин"},{"id":"B","text":"Миозин, актин"},{"id":"C","text":"Кератин, фибрин"},{"id":"D","text":"Тубулин, гемоглобин"}]},{"n":2,"type":"single","q":"Тимозин гормоны жетіспесе не болады?","answer":"B","points":1,"options":[{"id":"A","text":"Қан қысымы жоғарылайды"},{"id":"B","text":"Иммундық жүйе әлсірейді"},{"id":"C","text":"Асқорыту бұзылады"},{"id":"D","text":"Қанның ұюы күшейеді"}]},{"n":3,"type":"single","q":"Саңырауқұлақтардағы қоректік заты?","answer":"C","points":1,"options":[{"id":"A","text":"Крахмал"},{"id":"B","text":"Целлюлоза"},{"id":"C","text":"Гликоген"},{"id":"D","text":"Хитин"}]},{"n":4,"type":"single","q":"Бұлшықет тонусының біркелкі таралуын қандай ми бөлігі реттейді?","answer":"B","points":1,"options":[{"id":"A","text":"Мишық"},{"id":"B","text":"Ортаңғы ми"},{"id":"C","text":"Сопақша ми"},{"id":"D","text":"Ми қыртысы"}]},{"n":5,"type":"single","q":"Сабақтың және буынаралықтың өсуіне, өсімдіктің созылып өсуіне жауап беретін фитогормон қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Ауксин"},{"id":"B","text":"Цитокинин"},{"id":"C","text":"Гибереллин"},{"id":"D","text":"Абсциз қышқылы"}]},{"n":6,"type":"single","q":"Мүктің өкілі ?","answer":"B","points":1,"options":[{"id":"A","text":"Саргассум"},{"id":"B","text":"Маршанция"},{"id":"C","text":"Хлорелла"},{"id":"D","text":"Ламинария"}]},{"n":7,"type":"single","q":"Өкпенің сыйымдылығын өлшейтін құрал қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Тонометр"},{"id":"B","text":"Спирометр"},{"id":"C","text":"Гигрометр"},{"id":"D","text":"Манометр"}]},{"n":8,"type":"single","q":"Мутуализм дегеніміз не?","answer":"B","points":1,"options":[{"id":"A","text":"Бір түрге пайда әкеліп, екіншісіне зиян келтіреді"},{"id":"B","text":"Екі түр де бір-біріне пайда әкеледі"},{"id":"C","text":"Бір түр екіншісін пайдаланғанымен, оған зиян келтірмейді"},{"id":"D","text":"Бір түр екіншісін жойып жібереді"}]},{"n":9,"type":"single","q":"Саңырауқұлақ тудыратын өсімдік ауруы қалай аталады?","answer":"A","points":1,"options":[{"id":"A","text":"Фитофтороз"},{"id":"B","text":"Бактериоз"},{"id":"C","text":"Вироз"},{"id":"D","text":"Хлороз"}]},{"n":10,"type":"single","q":"Ламелланың қызметі қандай?","answer":"A","points":1,"options":[{"id":"A","text":"Хлоропласттағы граналарды байланыстырады"},{"id":"B","text":"Өсімдіктің газ алмасуын реттейді"},{"id":"C","text":"Фотосинтез кезінде көмірқышқыл газын сіңіреді"},{"id":"D","text":"Өсімдік жасушасында су жинақтайды"}]},{"n":11,"type":"single","q":"Антигеннің еруін қандай заттар туғызады?","answer":"C","points":1,"options":[{"id":"A","text":"Агглютининдер"},{"id":"B","text":"Коагуляциялаушы"},{"id":"C","text":"Лизистейтіндер"},{"id":"D","text":"Нейтралдаушы"}]},{"n":12,"type":"single","q":"Гидролитикалық ферменттерге толы органоид қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Гольджи аппараты"},{"id":"B","text":"Рибосома"},{"id":"C","text":"Лизосома"},{"id":"D","text":"Митохондрия"}]},{"n":13,"type":"single","q":"Сәбіздің, тарна мен қалақайдың тамырында болатын пигмент қалай аталады?","answer":"D","points":1,"options":[{"id":"A","text":"Хлорофилл"},{"id":"B","text":"Антоциан"},{"id":"C","text":"Фикобилин"},{"id":"D","text":"Каротиноид"}]},{"n":14,"type":"single","q":"Тамақты көмейге өткізбей, өңешке бағыттайтын құрылым қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Тіл"},{"id":"B","text":"Бөбешік"},{"id":"C","text":"Кеңірдек"},{"id":"D","text":"Жұтқыншақ"}]},{"n":15,"type":"single","q":"Флоэма арқылы калийдің тасымалдану жолы қалай жүзеге асады?","answer":"B","points":1,"options":[{"id":"A","text":"Диффузия арқылы"},{"id":"B","text":"Иондық тасымал арқылы"},{"id":"C","text":"Осмос арқылы"},{"id":"D","text":"Активті тасымал арқылы"}]},{"n":16,"type":"single","q":"Ішкі құлақтағы қуыстар мен иірім өзекшелерден түзілген күрделі жүйе қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Дабыл жарғағы"},{"id":"B","text":"Ұлу"},{"id":"C","text":"Шытырман"},{"id":"D","text":"Евстахий түтігі"}]},{"n":17,"type":"single","q":"Қай жануарлар аммиакты негізгі азотты зат алмасу өнімі ретінде бөліп шығарады?","answer":"A","points":1,"options":[{"id":"A","text":"Тұщы су омыртқасыздары"},{"id":"B","text":"Құстар"},{"id":"C","text":"Сүтқоректілер"},{"id":"D","text":"Бауырымен жорғалаушылар"}]},{"n":18,"type":"single","q":"Конвергенция қандай эволюциялық құбылыс?","answer":"A","points":1,"options":[{"id":"A","text":"Туыстық жағынан алыс организмдердің ұқсас ортада өмір сүруіне байланысты сыртқы пішінінің ұқсас болуы"},{"id":"B","text":"Бір тектес организмдердің әртүрлі ортаға бейімделіп, бір-бірінен алшақтау процесі"},{"id":"C","text":"Белгілі бір түрдің уақыт өте келе басқа түрге айналуы"},{"id":"D","text":"Организмдердің тек генетикалық ұқсастығына негізделген эволюциялық процесс"}]},{"n":19,"type":"single","q":"Қанда май тәрізді заттарды тасымалдайтын нәруыз","answer":"B","points":1,"options":[{"id":"A","text":"Глобулин"},{"id":"B","text":"Альбумин"},{"id":"C","text":"Иммуноглобулин"},{"id":"D","text":"Фибриноген"}]},{"n":20,"type":"single","q":"Миофибрилла құрамындағы жиырылуға қабілетті, қайталанушы құрылымдық бірлігі","answer":"D","points":1,"options":[{"id":"A","text":"Криста"},{"id":"B","text":"Саркасома"},{"id":"C","text":"Гранула"},{"id":"D","text":"Саркомер"}]},{"n":21,"type":"single","q":"Баланың бойының өсуі баяулайды, басы үлкен болады, ұйқысы бұзылады – қай аурудың белгісі","answer":"A","points":1,"options":[{"id":"A","text":"Мешел"},{"id":"B","text":"Ақшам соқыр"},{"id":"C","text":"Бери-бери"},{"id":"D","text":"Тырыспа"}]},{"n":22,"type":"single","q":"Ақ бұлшықет талшықтарына тән","answer":"A","points":1,"options":[{"id":"A","text":"гликоген көп"},{"id":"B","text":"баяу"},{"id":"C","text":"митохондрия көп"},{"id":"D","text":"миоглобин көп"}]},{"n":23,"type":"single","q":"Энтодермадан түзіледі","answer":"D","points":1,"options":[{"id":"A","text":"Шаш, тырнақ, тұяқ, түк, жүйке жүйесі"},{"id":"B","text":"Бұлшықет, жүрек, тамырлар, жыныс жəне бөліп шығару мүшелер"},{"id":"C","text":"Тері, жүйке жүйесі"},{"id":"D","text":"Асқорыту жүйесі мен тыныс алу"}]},{"n":24,"type":"single","q":"Апопластық жол дегеніміз не?","answer":"A","points":1,"options":[{"id":"A","text":"Өсімдіктің барлық жерінде үздіксіз желіні құрайтын іргелес жатқан жасуша қабырғаларының жүйесі"},{"id":"B","text":"Суда еріген заттардың цитоплазма арқылы жасушадан жасушаға өту жолы"},{"id":"C","text":"Тек флоэма арқылы жүзеге асатын тасымалдау механизмі"},{"id":"D","text":"Тамыр түктері арқылы судың тек эндодермаға өту жолы"}]},{"n":25,"type":"single","q":"Жасушаның бөлінуге дайындық кезеңі қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Профаза"},{"id":"B","text":"Анафаза"},{"id":"C","text":"Интерфаза"},{"id":"D","text":"Телофаза"}]},{"n":26,"type":"single","q":"2-суретте көрсетілген тозаңдану түрі:","answer":"B","points":1,"options":[{"id":"A","text":"Желмен тозаңдану"},{"id":"B","text":"Айқас тозаңдану"},{"id":"C","text":"Бунақденелілермен тозаңдану"},{"id":"D","text":"Су арқылы тозаңдану"}],"context":{"title":"Гүлді өсімдіктердің тозаңдануы мен ұрықтануы","body":"Гүлді өсімдіктердің жынысты көбею үдерісі: тозаңдану, ұрықтану және жемістің түзілуінен тұрады. Гүлдің көбеюге қатысатын бөлімдері - аталық пен аналық. Гүлді өсімдіктер өздігінен және айқас тозанданады. Тозанданудан соң ұрықтану үдерісі жүреді. Гүлді өсімдіктердегі ұрықтану - қосарлы ұрықтану деп аталады.","images":["assets/test5-1.png"]}},{"n":27,"type":"single","q":"Бір гүл ішінде аталығының сол гүл аналығының аузына келіп түсуі қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Айқас тозаңдану"},{"id":"B","text":"Өздігінен тозаңдану"},{"id":"C","text":"Жел арқылы тозаңдану"},{"id":"D","text":"Бунақденелілер арқылы тозаңдану"}],"context":{"title":"Гүлді өсімдіктердің тозаңдануы мен ұрықтануы","body":"Гүлді өсімдіктердің жынысты көбею үдерісі: тозаңдану, ұрықтану және жемістің түзілуінен тұрады. Гүлдің көбеюге қатысатын бөлімдері - аталық пен аналық. Гүлді өсімдіктер өздігінен және айқас тозанданады. Тозанданудан соң ұрықтану үдерісі жүреді. Гүлді өсімдіктердегі ұрықтану - қосарлы ұрықтану деп аталады.","images":["assets/test5-1.png"]}},{"n":28,"type":"single","q":"Жел арқылы тозаңданатын гүлдердің ерекшелігі қандай?","answer":"C","points":1,"options":[{"id":"A","text":"Ашық түсті, хош иісті"},{"id":"B","text":"Шағын, жабық тостағанша жапырақты"},{"id":"C","text":"Тозаңдары құрғақ, жеңіл"},{"id":"D","text":"Үлкен, балшырын бөледі"}],"context":{"title":"Гүлді өсімдіктердің тозаңдануы мен ұрықтануы","body":"Гүлді өсімдіктердің жынысты көбею үдерісі: тозаңдану, ұрықтану және жемістің түзілуінен тұрады. Гүлдің көбеюге қатысатын бөлімдері - аталық пен аналық. Гүлді өсімдіктер өздігінен және айқас тозанданады. Тозанданудан соң ұрықтану үдерісі жүреді. Гүлді өсімдіктердегі ұрықтану - қосарлы ұрықтану деп аталады.","images":["assets/test5-1.png"]}},{"n":29,"type":"single","q":"1-суретте берілген тозаңдану түрі арқылы тозаңданатын өсімдік:","answer":"C","points":1,"options":[{"id":"A","text":"Орхидея"},{"id":"B","text":"Алма"},{"id":"C","text":"Жержанғақ"},{"id":"D","text":"Құлпынай"}],"context":{"title":"Гүлді өсімдіктердің тозаңдануы мен ұрықтануы","body":"Гүлді өсімдіктердің жынысты көбею үдерісі: тозаңдану, ұрықтану және жемістің түзілуінен тұрады. Гүлдің көбеюге қатысатын бөлімдері - аталық пен аналық. Гүлді өсімдіктер өздігінен және айқас тозанданады. Тозанданудан соң ұрықтану үдерісі жүреді. Гүлді өсімдіктердегі ұрықтану - қосарлы ұрықтану деп аталады.","images":["assets/test5-1.png"]}},{"n":30,"type":"single","q":"Су арқылы тозаңданатын су өсімдігі қайсысы?","answer":"C","points":1,"options":[{"id":"A","text":"Бақбақ"},{"id":"B","text":"Сарғалдақ"},{"id":"C","text":"Тұңғиық"},{"id":"D","text":"Күріш"}],"context":{"title":"Гүлді өсімдіктердің тозаңдануы мен ұрықтануы","body":"Гүлді өсімдіктердің жынысты көбею үдерісі: тозаңдану, ұрықтану және жемістің түзілуінен тұрады. Гүлдің көбеюге қатысатын бөлімдері - аталық пен аналық. Гүлді өсімдіктер өздігінен және айқас тозанданады. Тозанданудан соң ұрықтану үдерісі жүреді. Гүлді өсімдіктердегі ұрықтану - қосарлы ұрықтану деп аталады.","images":["assets/test5-1.png"]}},{"n":31,"type":"match","q":"Сәйкестендір","items":[{"text":"Тонустық бұлшықет","answer":"B"},{"text":"Фазикалық бұлшықет","answer":"D"}],"points":2,"options":[{"id":"A","text":"Саркоплазмалық ретикулум мүлде болмайды"},{"id":"B","text":"Жазылу бұлшықеттерінде кездеседі"},{"id":"C","text":"Диаметрі 30 мкм"},{"id":"D","text":"Төменгі аэробты төзімділікке ие"}]},{"n":32,"type":"match","q":"Сәйкестендір","items":[{"text":"Инициация","answer":"A"},{"text":"Терминация","answer":"B"}],"points":2,"options":[{"id":"A","text":"АУГ старт кодоны арқылы процесстің басталуы"},{"id":"B","text":"Стоп кодондар арқылы нәруыз синтезінің аяқталуы"},{"id":"C","text":"Тасымалдаушы РНҚның аминқышқылдарын қосып алуы"},{"id":"D","text":"Нәруыз синтезінің өзі"}]},{"n":33,"type":"match","q":"Сәйкестендір","items":[{"text":"с хлорофилі","answer":"D"},{"text":"d хлорофилі","answer":"B"}],"points":2,"options":[{"id":"A","text":"көк-жасыл түсті"},{"id":"B","text":"қызыл балдырларда"},{"id":"C","text":"жоғары сатыдағы өсімдіктерде"},{"id":"D","text":"диатомды балдырларда"}]},{"n":34,"type":"match","q":"Сәйкестендір","items":[{"text":"Алдыңғы камера","answer":"B"},{"text":"Көзбұршақ","answer":"A"}],"points":2,"options":[{"id":"A","text":"жарық сәулелерін өткізіп, фокустайды"},{"id":"B","text":"жарық сәулелерін сындырмайды"},{"id":"C","text":"көзді дөңгелек етеді"},{"id":"D","text":"көзді оттекпен және қоректік заттармен қамтамасыз етеді"}]},{"n":35,"type":"match","q":"Сәйкестендір","items":[{"text":"Телофаза","answer":"C"},{"text":"Профаза","answer":"D"}],"points":2,"options":[{"id":"A","text":"кроссинговер жүзеге асады"},{"id":"B","text":"әр хромосомаға екі ахроматин жіпшесі жабысады"},{"id":"C","text":"цитокинез жүзеге асады"},{"id":"D","text":"центриольдер бөліну ұршығын түзеді"}]},{"n":36,"type":"multi","q":"Оңтүстік Америка орталығынан шыққан жануар(-лар)","answer":["A","C","F"],"points":2,"options":[{"id":"A","text":"теңіз шошқасы"},{"id":"B","text":"тауық"},{"id":"C","text":"альпака"},{"id":"D","text":"балара"},{"id":"E","text":"жылқы"},{"id":"F","text":"күркетауық"}]},{"n":37,"type":"multi","q":"Грам оң бактерияларға тән сипаттама(-лар)","answer":["C","D","F"],"points":2,"options":[{"id":"A","text":"пориндік өзектер бар"},{"id":"B","text":"пептидогликандардың жұқа қабаты"},{"id":"C","text":"липидтер мөлшері аз"},{"id":"D","text":"периплазмалық кеңістік жоқ"},{"id":"E","text":"липополисахариді бар сыртқы мембрана"},{"id":"F","text":"лизоцим мен пенициллин әсеріне төзбейді"}]},{"n":38,"type":"multi","q":"Суда еритін дәрумен(-дер)","answer":["B","D","F"],"points":2,"options":[{"id":"A","text":"Е"},{"id":"B","text":"РР"},{"id":"C","text":"А"},{"id":"D","text":"С"},{"id":"E","text":"Д"},{"id":"F","text":"В12"}]},{"n":39,"type":"multi","q":"Жиырылғыш вакуолі арқылы зәрін бөліп шығаратындар","answer":["A","B","C"],"points":2,"options":[{"id":"A","text":"Медузалар"},{"id":"B","text":"Маржандар"},{"id":"C","text":"Губка"},{"id":"D","text":"Гидралар"},{"id":"E","text":"Жұмырқұрттар"},{"id":"F","text":"Сегізаяқ"}]},{"n":40,"type":"multi","q":"Зәр қышқылын бөлетін ағзалар","answer":["C","D"],"points":2,"options":[{"id":"A","text":"Сүтқоректілер"},{"id":"B","text":"Теңіз сүйекті балықтары"},{"id":"C","text":"Жер бетіндегі бунақденелілер"},{"id":"D","text":"Жорғалаушылар"},{"id":"E","text":"Ересек бақа"},{"id":"F","text":"Тұщы су дернәсілі"}]}]},{"slug":"test6","title":"6-тест","total":50,"questions":[{"n":1,"type":"single","q":"Генетикалық кодта ақуыз синтезін тоқтататын стоп-кодондардың бірі қайсысы?","answer":"A","points":1,"options":[{"id":"A","text":"UAA"},{"id":"B","text":"AUG"},{"id":"C","text":"GGU"},{"id":"D","text":"AAA"}]},{"n":2,"type":"single","q":"Триптофанның тотығуын катализдейтін фермент қайсысы?","answer":"B","points":1,"options":[{"id":"A","text":"Тирозиназа"},{"id":"B","text":"Моноаминоксидаза"},{"id":"C","text":"Рибонуклеаза"},{"id":"D","text":"Карбоксипептидаза"}]},{"n":3,"type":"single","q":"G₂ кезеңінде қандай негізгі процесс жүреді?","answer":"B","points":1,"options":[{"id":"A","text":"ДНҚ репликациясы"},{"id":"B","text":"Жасушаның бөлінуге дайындығы"},{"id":"C","text":"Хромосомалардың екіге ажырауы"},{"id":"D","text":"Цитокинез процесі"}]},{"n":4,"type":"single","q":"Адам ағзасында гликоген негізінен қайда жиналады?","answer":"C","points":1,"options":[{"id":"A","text":"Бүйрек пен өкпеде"},{"id":"B","text":"Асқазан мен ішекте"},{"id":"C","text":"Бұлшықет пен бауырда"},{"id":"D","text":"Жүрек пен көкбауырда"}]},{"n":5,"type":"single","q":"Өсімдіктің генеративті сатысы немен аяқталады?","answer":"C","points":1,"options":[{"id":"A","text":"Тамыр жүйесінің қалыптасуымен"},{"id":"B","text":"Жапырақтардың түсуімен"},{"id":"C","text":"Жеміс түзілуімен"},{"id":"D","text":"Өсу аймағының кеңеюімен"}]},{"n":6,"type":"single","q":"Өсімдіктің вегетативті сатысы немен аяқталады?","answer":"B","points":1,"options":[{"id":"A","text":"Жеміс түзілуімен"},{"id":"B","text":"Генеративті мүшелердің қалыптасуымен"},{"id":"C","text":"Тұқым өнуімен"},{"id":"D","text":"Тамыр жүйесінің толық қалыптасуымен"}]},{"n":7,"type":"single","q":"Суретте берілген мүшенің қызметін белгіле","answer":"B","points":1,"options":[{"id":"A","text":"Өкпеге оттегін тасымалдау"},{"id":"B","text":"Нәруызды қанға сіңіру"},{"id":"C","text":"Су мен дәрумендерді сіңіру"},{"id":"D","text":"Асқазан мен ұйқы безінің жұмыстарын белсендіру"}],"images":["assets/test6-1.png"]},{"n":8,"type":"single","q":"Метафаза кезеңінде хромосомалар қандай өзгеріске ұшырайды?","answer":"B","points":1,"options":[{"id":"A","text":"Спиральдану процесі жүреді"},{"id":"B","text":"Хромосомалар жасуша экваторына жиналады"},{"id":"C","text":"Хромосомалар полюстерге ажырайды"},{"id":"D","text":"Цитоплазма екіге бөлінеді"}]},{"n":9,"type":"single","q":"Профаза I кезеңінде қандай процестер жүреді?","answer":"B","points":1,"options":[{"id":"A","text":"Хромосомалардың полюстерге ажырауы"},{"id":"B","text":"Конъюгация және кроссинговер"},{"id":"C","text":"Жасуша қабырғасының ыдырауы"},{"id":"D","text":"Цитоплазманың екіге бөлінуі"}]},{"n":10,"type":"single","q":"Асқорыту жолының кеңейген бөлімі қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Өңеш"},{"id":"B","text":"Аш ішек"},{"id":"C","text":"Асқазан"},{"id":"D","text":"Тоқ ішек"}]},{"n":11,"type":"single","q":"Үлкен қанайналым шеңбері қай жерден басталады?","answer":"D","points":1,"options":[{"id":"A","text":"Оң жақ жүрекше"},{"id":"B","text":"Оң жақ қарынша"},{"id":"C","text":"Сол жақ жүрекше"},{"id":"D","text":"Сол жақ қарынша"}]},{"n":12,"type":"single","q":"Қырықжапырақтың спорасынан не түзіледі?","answer":"B","points":1,"options":[{"id":"A","text":"Диплоидты спорофит"},{"id":"B","text":"Гаплоидты гаметофит"},{"id":"C","text":"Сорус"},{"id":"D","text":"Тамырсабақ"}]},{"n":13,"type":"single","q":"Қарапайым диффузия жылдамдығы қандай теңдеумен анықталады?","answer":"C","points":1,"options":[{"id":"A","text":"Ньютонның екінші заңы"},{"id":"B","text":"Менделеев-Клапейрон теңдеуі"},{"id":"C","text":"Фик теңдеуі"},{"id":"D","text":"Архимед заңы"}]},{"n":14,"type":"single","q":"Ағзаны микробтардан қорғайтын қан жасушалары қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Эритроциттер"},{"id":"B","text":"Лейкоциттер"},{"id":"C","text":"Тромбоциттер"},{"id":"D","text":"Плазмоциттер"}]},{"n":15,"type":"single","q":"Суретте берілген 3 мүшеге сәйкес келетін жауапты белгіле","answer":"B","points":1,"options":[{"id":"A","text":"Бұлшықетті қабаттан тұрады"},{"id":"B","text":"Жартылай шеміршекті сақинадан тұрады"},{"id":"C","text":"Сүйекті тіннен қалыптасқан"},{"id":"D","text":"Тек дәнекер тіннен тұрады"}],"images":["assets/test6-2.png"]},{"n":16,"type":"single","q":"Қай орган оттекті қанға сіңіріп, көмірқышқыл газын шығарады?","answer":"C","points":1,"options":[{"id":"A","text":"Жүрек"},{"id":"B","text":"Бауыр"},{"id":"C","text":"Өкпе"},{"id":"D","text":"Бүйрек"}]},{"n":17,"type":"single","q":"1 моль глюкоза толық тотығу кезінде түзілетін АТФ мөлшері қанша кДж энергия береді?","answer":"C","points":1,"options":[{"id":"A","text":"800,5 кДж"},{"id":"B","text":"61,2 кДж"},{"id":"C","text":"1162,8 кДж"},{"id":"D","text":"1160 кДж"}]},{"n":18,"type":"single","q":"Буылтық құрттардың зәр шығару жүйесі қалай аталады?","answer":"B","points":1,"options":[{"id":"A","text":"Протонефридия"},{"id":"B","text":"Метанефридия"},{"id":"C","text":"Мальпигий түтікшелері"},{"id":"D","text":"Нефрон"}]},{"n":19,"type":"single","q":"Өсімдіктің жоғарыға қарай бағытталған қозғалысы қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Геотропизм"},{"id":"B","text":"Хемотропизм"},{"id":"C","text":"Гелиотропизм"},{"id":"D","text":"Тигмотропизм"}]},{"n":20,"type":"single","q":"Қол сүйегіне дұрыс келетін нұсқаны белгілеңіз.","answer":"C","points":1,"options":[{"id":"A","text":"Асықты жілік"},{"id":"B","text":"Сан сүйегі"},{"id":"C","text":"Шынтақ сүйегі"},{"id":"D","text":"Шыбық сүйегі"}]},{"n":21,"type":"single","q":"Жүйке импульсін беру қызметін атқаратын түзіліс қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Аксон"},{"id":"B","text":"Дендрит"},{"id":"C","text":"Синапс"},{"id":"D","text":"Миелин қабаты"}]},{"n":22,"type":"single","q":"Әйелдердің жыныстық дамуы мен репродуктивті функциясын реттейтін гормон қалай аталады?","answer":"C","points":1,"options":[{"id":"A","text":"Тестостерон"},{"id":"B","text":"Адреналин"},{"id":"C","text":"Эстроген"},{"id":"D","text":"Инсулин"}]},{"n":23,"type":"single","q":"R-стратегияға тән негізгі сипаттама қандай?","answer":"A","points":1,"options":[{"id":"A","text":"Тез ұрпақ алмасу"},{"id":"B","text":"Ұзақ өмір сүру және аз ұрпақ беру"},{"id":"C","text":"Ата-ана қамқорлығының жоғары деңгейі"},{"id":"D","text":"Ұрпақ санының аз болуы"}]},{"n":24,"type":"single","q":"Асқорыту сөлінің бөлінуі қандай процесс болып табылады?","answer":"B","points":1,"options":[{"id":"A","text":"Физикалық"},{"id":"B","text":"Химиялық"},{"id":"C","text":"Биологиялық"},{"id":"D","text":"Механикалық"}]},{"n":25,"type":"single","q":"Овоцит және сперматоцит қай кезеңде түзіледі?","answer":"B","points":1,"options":[{"id":"A","text":"Бөлу кезеңі"},{"id":"B","text":"Өсу кезеңі"},{"id":"C","text":"Пісіп-жетілу кезеңі"},{"id":"D","text":"Ұрықтану кезеңі"}]},{"n":26,"type":"single","q":"1 және 7 цифрмен көрсетілген сүйектердегі байланыс","answer":"B","points":1,"options":[{"id":"A","text":"Шеміршек арқылы"},{"id":"B","text":"Жік арқылы"},{"id":"C","text":"Буын арқылы"},{"id":"D","text":"Сіңір арқылы"}],"context":{"title":"Сүйектің құрылысы","body":"Адам ағзасы – күрделі және үйлесімді жұмыс істейтін биологиялық жүйе. Оның тірек-қимыл аппаратының негізін сүйектер құрайды. Ересек адамның қаңқасы 206 сүйектен тұрады, олар белгілі бір құрылым мен қызметке ие. Сүйектер тек қана тірек қызметін атқармайды, олар қан түзілуіне, минералдық алмасуға, қозғалысқа және энергия алмасуына да тікелей қатысады. Сонымен қатар, сүйектерге бұлшықеттер бекиді, бұл адамның қозғалуына мүмкіндік береді."},"images":["assets/test6-3.png"]},{"n":27,"type":"single","q":"7 және 8 санмен бейнеленген","answer":"C","points":1,"options":[{"id":"A","text":"Сүйек ұлпасының жасушалары"},{"id":"B","text":"Сүйектің сары кемігі және қан тамырлар"},{"id":"C","text":"Сүйектің тығыз заты және сүйекқап"},{"id":"D","text":"Сүйектің кемік майы және сүйекқап"}],"context":{"title":"Сүйектің құрылысы","body":"Адам ағзасы – күрделі және үйлесімді жұмыс істейтін биологиялық жүйе. Оның тірек-қимыл аппаратының негізін сүйектер құрайды. Ересек адамның қаңқасы 206 сүйектен тұрады, олар белгілі бір құрылым мен қызметке ие. Сүйектер тек қана тірек қызметін атқармайды, олар қан түзілуіне, минералдық алмасуға, қозғалысқа және энергия алмасуына да тікелей қатысады. Сонымен қатар, сүйектерге бұлшықеттер бекиді, бұл адамның қозғалуына мүмкіндік береді."},"images":["assets/test6-4.png"]},{"n":28,"type":"single","q":"7 Суретімен белгіленген құрылым","answer":"B","points":1,"options":[{"id":"A","text":"Буын байламы"},{"id":"B","text":"Буын қабы"},{"id":"C","text":"Буын сұйықтығы"},{"id":"D","text":"Буын сіңірі"}],"context":{"title":"Сүйектің құрылысы","body":"Адам ағзасы – күрделі және үйлесімді жұмыс істейтін биологиялық жүйе. Оның тірек-қимыл аппаратының негізін сүйектер құрайды. Ересек адамның қаңқасы 206 сүйектен тұрады, олар белгілі бір құрылым мен қызметке ие. Сүйектер тек қана тірек қызметін атқармайды, олар қан түзілуіне, минералдық алмасуға, қозғалысқа және энергия алмасуына да тікелей қатысады. Сонымен қатар, сүйектерге бұлшықеттер бекиді, бұл адамның қозғалуына мүмкіндік береді."},"images":["assets/test6-5.png"]},{"n":29,"type":"single","q":"Жай буынды көрсет","answer":"C","points":1,"options":[{"id":"A","text":"Бассүйек"},{"id":"B","text":"Сегізкөз"},{"id":"C","text":"Иық"},{"id":"D","text":"Жақсүйек"}],"context":{"title":"Сүйектің құрылысы","body":"Адам ағзасы – күрделі және үйлесімді жұмыс істейтін биологиялық жүйе. Оның тірек-қимыл аппаратының негізін сүйектер құрайды. Ересек адамның қаңқасы 206 сүйектен тұрады, олар белгілі бір құрылым мен қызметке ие. Сүйектер тек қана тірек қызметін атқармайды, олар қан түзілуіне, минералдық алмасуға, қозғалысқа және энергия алмасуына да тікелей қатысады. Сонымен қатар, сүйектерге бұлшықеттер бекиді, бұл адамның қозғалуына мүмкіндік береді."}},{"n":30,"type":"single","q":"Түтікше тәрізді сүйектердегі сүйекқаптың қызметі","answer":"C","points":1,"options":[{"id":"A","text":"Қалың өсіруге"},{"id":"B","text":"Ұзарып өсуге"},{"id":"C","text":"Жуандап өсуге"},{"id":"D","text":"Қызметі жоқ"}],"context":{"title":"Сүйектің құрылысы","body":"Адам ағзасы – күрделі және үйлесімді жұмыс істейтін биологиялық жүйе. Оның тірек-қимыл аппаратының негізін сүйектер құрайды. Ересек адамның қаңқасы 206 сүйектен тұрады, олар белгілі бір құрылым мен қызметке ие. Сүйектер тек қана тірек қызметін атқармайды, олар қан түзілуіне, минералдық алмасуға, қозғалысқа және энергия алмасуына да тікелей қатысады. Сонымен қатар, сүйектерге бұлшықеттер бекиді, бұл адамның қозғалуына мүмкіндік береді."}},{"n":31,"type":"match","q":"Сәйкестендір","items":[{"text":"IgM","answer":"A"},{"text":"IgE","answer":"B"}],"points":2,"options":[{"id":"A","text":"Жұқпалы аурулардан кейін бірінші болып түзіледі"},{"id":"B","text":"Ұлпалық базофильдермен берік байланысады"},{"id":"C","text":"Еріген антигенді тұнбаға түсіретін қабілеті болмайды"},{"id":"D","text":"Миеломалық аурулар кезінде саны көбейеді"}]},{"n":32,"type":"match","q":"Сәйкестендір","items":[{"text":"Ірі бұрушы","answer":"D"},{"text":"Ірі желпуіш","answer":"B"}],"points":2,"options":[{"id":"A","text":"қызып кетуден сақтайды"},{"id":"B","text":"ұшу беткейін түзейді"},{"id":"C","text":"құс денесін жеңілдетеді"},{"id":"D","text":"ұшуын бағыттайды,қону кезінде жылдамдық реттейді"}]},{"n":33,"type":"match","q":"Сәйкестендір","items":[{"text":"мРНҚ","answer":"C"},{"text":"тРНҚ","answer":"B"}],"points":2,"options":[{"id":"A","text":"Ақуыз синтезін жүзеге асыру"},{"id":"B","text":"Аминқышқылдарын тасымалдау"},{"id":"C","text":"Генетикалық ақпаратты ДНҚ-дан рибосомаға жеткізу"},{"id":"D","text":"Жасуша мембранасын қорғау"}]},{"n":34,"type":"match","q":"Сәйкестендір","items":[{"text":"Құтыша","answer":"B"},{"text":"Таяқша","answer":"A"}],"points":2,"options":[{"id":"A","text":"торлы қабықтың шетінде орналасады"},{"id":"B","text":"торлы қабықтың ортасында орналасады"},{"id":"C","text":"тамырлы қабықтың ортасында орналасады"},{"id":"D","text":"тамырлы қабықтың шетінде орналасады"}]},{"n":35,"type":"match","q":"Сәйкестендір","items":[{"text":"Аш ішек","answer":"A"},{"text":"Тоқ ішек","answer":"D"}],"points":2,"options":[{"id":"A","text":"Қоректік заттар қорытылады, қан мен лимфаға сіңеді"},{"id":"B","text":"Тамақтың қорытылмаған қалдықтары шығады"},{"id":"C","text":"Майды қорытуға қатысады"},{"id":"D","text":"Дәрумен мен минералды тұздарды сіңіреді"}]},{"n":36,"type":"multi","q":"Реактивті қозғалатын организмдер","answer":["B","C","D"],"points":2,"options":[{"id":"A","text":"Өрмекші"},{"id":"B","text":"Медуза"},{"id":"C","text":"Сегізаяк"},{"id":"D","text":"Каракатица"},{"id":"E","text":"Гидра"},{"id":"F","text":"Устрица"}]},{"n":37,"type":"multi","q":"Көмірсуды ыдырататын ферменттер","answer":["B","C","F"],"points":2,"options":[{"id":"A","text":"Липаза"},{"id":"B","text":"Амилаза"},{"id":"C","text":"Дисахаридаза"},{"id":"D","text":"Фосфолигаза"},{"id":"E","text":"Хеликаза"},{"id":"F","text":"Глюкоамилаза"}]},{"n":38,"type":"multi","q":"Бауырымен жорғалаушылардың жүрегінің ерекшелігі","answer":["B","D","F"],"points":2,"options":[{"id":"A","text":"Қарыншасы толықтай пердемен бөлінген"},{"id":"B","text":"3 қуысты"},{"id":"C","text":"1 қан айналымы шеңбері"},{"id":"D","text":"Қарыншасы жартылай пердемен бөлінген"},{"id":"E","text":"3 жүрекше тән"},{"id":"F","text":"2 қан айналымы шеңбері"}]},{"n":39,"type":"multi","q":"Тірек ұлпасына тəн қасиеттер","answer":["A","D","F"],"points":2,"options":[{"id":"A","text":"Өсімдікке беріктік қасиет береді"},{"id":"B","text":"Жəндіктерді еліктіреді"},{"id":"C","text":"Бойына су жинайды"},{"id":"D","text":"Хлоропласты болмайды"},{"id":"E","text":"Ұлпа арасында ауа жинайды"},{"id":"F","text":"Жасуша кабырғасы өте қатты"}]},{"n":40,"type":"multi","q":"Дара жарнақты өсімдікті таңда","answer":["A","E","F"],"points":2,"options":[{"id":"A","text":"Күріш"},{"id":"B","text":"Раушан"},{"id":"C","text":"Қараағаш"},{"id":"D","text":"Картоп"},{"id":"E","text":"Сарымсақ"},{"id":"F","text":"Элодея"}]}]}],"config":{"submitUrl":""}}</script>
@@ -339,694 +202,253 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
 (function(){
 "use strict";
 var DATA = JSON.parse(document.getElementById('quiz-data').textContent);
-var TESTS = DATA.tests;
-var LETTERS = ['A','B','C','D','E','F'];
-var T = null;                                  /* ағымдағы тест */
-function keyState(slug){ return 'bio-ubt-v2-state-' + slug; }
-function keyLast(slug){ return 'bio-ubt-v2-last-' + slug; }
-
-var TYPE_LABEL = {
-  single:'Бір дұрыс жауап',
-  multi:'Бірнеше дұрыс жауап',
-  match:'Сәйкестендіру'
-};
-
-/* ---------- storage helpers (never throw) ---------- */
-function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-function load(k){ try{ var s=localStorage.getItem(k); return s?JSON.parse(s):null; }catch(e){ return null; } }
-function drop(k){ try{ localStorage.removeItem(k); }catch(e){} }
-
-/* ---------- dom ---------- */
+var TESTS = DATA.tests, CFG = DATA.config || {};
+var KEY = 'bio-ubt-dash-key';
 var $ = function(id){ return document.getElementById(id); };
-var elStart=$('screen-start'), elQuiz=$('screen-quiz'), elResult=$('screen-result');
-var elId=$('screen-id');
-var elCard=$('qcard'), elNavGrid=$('navgrid'), elNavPanel=$('navpanel'), elNavHint=$('navhint');
-var topbar=null;
+var rows = [], sortK = 'at', sortDir = -1;
 
-var CFG = DATA.config || {};
-var COLLECT = !!CFG.submitUrl;                 /* нәтиже жиналатын режим */
-var KEY_WHO = 'bio-ubt-v2-who';
-var who = load(KEY_WHO) || {name:'', group:''};
-var S = null;      /* running session */
-var opts = { minutes:60, shuffle:false, mode:'exam' };
-
-/* ---------- setup segments ---------- */
-function segment(id, fn){
-  var box=$(id);
-  box.addEventListener('click', function(e){
-    var b=e.target.closest('button'); if(!b) return;
-    Array.prototype.forEach.call(box.querySelectorAll('button'), function(x){ x.setAttribute('aria-pressed', x===b ? 'true':'false'); });
-    fn(b);
-  });
-}
-segment('seg-time', function(b){ opts.minutes=+b.dataset.min; });
-segment('seg-shuffle', function(b){ opts.shuffle = b.dataset.val==='1'; });
-segment('seg-mode', function(b){ opts.mode = b.dataset.val; });
-
-/* ---------- session ---------- */
-function shuffled(arr){
-  var a=arr.slice(), i, j, t;
-  for(i=a.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=a[i]; a[i]=a[j]; a[j]=t; }
-  return a;
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function pct(a,b){ return b ? Math.round(a/b*100) : 0; }
+function mmss(s){ var m=Math.floor(s/60); return m+' мин '+(s%60<10?'0':'')+(s%60)+' сек'; }
+function fmtDate(iso){
+  var d=new Date(iso); if(isNaN(d)) return String(iso);
+  var p=function(n){ return n<10?'0'+n:''+n; };
+  return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
 }
 
-function buildSession(){
-  var qs = T.questions.map(function(q){
-    return { src:q, options: opts.shuffle ? shuffled(q.options) : q.options.slice() };
-  });
-  if(opts.shuffle) qs = shuffled(qs);
-  return {
-    slug:T.slug,
-    opts:{ minutes:opts.minutes, shuffle:opts.shuffle, mode:opts.mode },
-    order: qs.map(function(x){ return { n:x.src.n, ids:x.options.map(function(o){return o.id;}) }; }),
-    answers: qs.map(function(x){
-      if(x.src.type==='match') return x.src.items.map(function(){ return null; });
-      if(x.src.type==='multi') return [];
-      return null;
-    }),
-    flags: qs.map(function(){ return false; }),
-    revealed: qs.map(function(){ return false; }),
-    i:0,
-    startedAt: Date.now(),
-    endsAt: opts.minutes ? Date.now()+opts.minutes*60000 : 0,
-    done:false
-  };
+$('head-sub').textContent = CFG.submitUrl
+  ? 'Оқушылар тестті тапсырған сайын нәтижесі осында жиналады.'
+  : 'Нәтиже жинау әлі бапталмаған — config.json ішіндегі submitUrl бос.';
+
+/* ---------- кіру ---------- */
+function gateGo(){
+  var k = $('in-key').value.trim();
+  if(!k){ msg('Құпия сөзді енгізіңіз.'); return; }
+  load(k, true);
 }
-
-function hydrate(state){
-  var byN = {}; T.questions.forEach(function(q){ byN[q.n]=q; });
-  state.qs = state.order.map(function(o){
-    var src = byN[o.n];
-    var map = {}; src.options.forEach(function(op){ map[op.id]=op; });
-    return { src:src, options:o.ids.map(function(id){ return map[id]; }) };
-  });
-  return state;
-}
-
-/* ---------- scoring ---------- */
-function scoreOne(q, ans){
-  var src=q.src, max=src.points, got=0, state='bad';
-  if(src.type==='single'){
-    if(ans===src.answer){ got=max; state='ok'; }
-  } else if(src.type==='multi'){
-    /* ҰБТ ережесі: қате не артық нұсқа болса — 0; бәрі дұрыс — 2;
-       дәл біреуі жетіспесе — 1; одан аз белгіленсе — 0. */
-    var sel = ans||[];
-    var need = src.answer.length;
-    var right = sel.filter(function(x){ return src.answer.indexOf(x)>=0; }).length;
-    var wrong = sel.length - right;
-    if(wrong>0 || right===0){ got=0; state='bad'; }
-    else if(right===need){ got=2; state='ok'; }
-    else if(need>=2 && right===need-1){ got=1; state='part'; }
-    else { got=0; state='bad'; }
-  } else {
-    var hits = src.items.filter(function(it,k){ return (ans||[])[k]===it.answer; }).length;
-    got = hits;                       /* 2 items -> 1 балл әрқайсысы */
-    state = hits===src.items.length ? 'ok' : (hits>0 ? 'part' : 'bad');
-  }
-  return { got:got, max:max, state:state };
-}
-
-function answered(q, ans){
-  if(q.src.type==='single') return ans!==null && ans!==undefined;
-  if(q.src.type==='multi') return (ans||[]).length>0;
-  return (ans||[]).some(function(x){ return !!x; });
-}
-
-/* ---------- topbar ---------- */
-function mountTopbar(){
-  if(topbar) return;
-  topbar=document.createElement('header');
-  topbar.className='topbar';
-  topbar.innerHTML =
-    '<div class="topbar-in">'+
-      '<button class="icon-btn" id="tb-home" type="button" title="Нұсқаларға оралу">←</button>'+
-      '<span class="tb-name" id="tb-name"></span>'+
-      '<span class="count" id="tb-count"></span>'+
-      '<span class="bar"><i id="tb-bar"></i></span>'+
-      '<span class="timer tnum" id="tb-timer" hidden></span>'+
-      '<button class="icon-btn" id="tb-map" type="button">Карта</button>'+
-      '<button class="icon-btn" id="tb-finish" type="button">Аяқтау</button>'+
-    '</div>';
-  document.querySelector('.wrap').insertAdjacentElement('beforebegin', topbar);
-  $('tb-home').addEventListener('click', function(){
-    if(!S || S.done){ home(); return; }
-    askChoice('«'+T.title+'» аяқталмады. Не істейміз?', 'Сақтап шығу', 'Осы жерде қалу',
-      function(){ persist(); home(); }, null);
-  });
-  $('tb-map').addEventListener('click', function(){
-    var open = !elNavPanel.hidden;
-    elNavPanel.hidden = open;
-  });
-  $('tb-finish').addEventListener('click', function(){
-    var left = S.qs.filter(function(q,k){ return !answered(q, S.answers[k]); }).length;
-    var msg = left ? left+' сұрақ жауапсыз қалды. Сонда да аяқтайсыз ба?' : 'Сынақты аяқтап, нәтижені көресіз бе?';
-    askConfirm(msg, function(){ finish(); });
-  });
-}
-
-function tick(){
-  if(!S || S.done) return;
-  if(S.endsAt){
-    var ms = S.endsAt - Date.now();
-    var t=$('tb-timer');
-    if(ms<=0){ t.textContent='00:00'; finish(true); return; }
-    var m=Math.floor(ms/60000), s=Math.floor(ms%60000/1000);
-    t.hidden=false;
-    t.textContent = (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
-    t.classList.toggle('low', ms < 5*60000);
-  } else { $('tb-timer').hidden=true; }
-}
-
-/* ---------- render ---------- */
-function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
-
-function renderNav(){
-  elNavGrid.innerHTML='';
-  S.qs.forEach(function(q,k){
-    var b=document.createElement('button');
-    b.type='button'; b.className='cell'; b.textContent=k+1;
-    b.setAttribute('aria-label','Сұрақ '+(k+1));
-    if(answered(q,S.answers[k])) b.classList.add('done');
-    if(S.flags[k]) b.classList.add('flagged');
-    if(k===S.i){ b.classList.add('now'); b.setAttribute('aria-current','true'); }
-    b.addEventListener('click', function(){ go(k); });
-    elNavGrid.appendChild(b);
-  });
-  var left = S.qs.filter(function(q,k){ return !answered(q,S.answers[k]); }).length;
-  elNavHint.textContent = left===0 ? 'Барлық сұраққа жауап берілді.' : left+' сұрақ жауапсыз.';
-}
-
-function renderQ(){
-  var k=S.i, q=S.qs[k], src=q.src, ans=S.answers[k];
-  var reveal = S.opts.mode==='practice' && S.revealed[k];
-  var badge = TYPE_LABEL[src.type] + (src.points>1 ? ' · '+src.points+' балл' : '');
-  var cls = src.type==='multi' ? ' multi' : (src.type==='match' ? ' match' : '');
-
-  var html = '<div class="qhead">'+
-      '<span class="eyebrow">Сұрақ '+(k+1)+' / '+S.qs.length+'</span>'+
-      '<span class="badge'+cls+'">'+esc(badge)+'</span>'+
-    '</div>';
-
-  function figures(list){
-    return (list||[]).map(function(u){
-      return '<figure class="qimg"><img src="'+esc(u)+'" alt="Сұраққа берілген сурет" loading="lazy"></figure>';
-    }).join('');
-  }
-  if(src.context){
-    html += '<details class="ctx" open><summary>'+esc(src.context.title)+'</summary>'+
-            '<div class="ctx-body">'+esc(src.context.body)+figures(src.context.images)+'</div></details>';
-  }
-  html += '<h2 class="qtext">'+esc(src.q)+'</h2>';
-  html += figures(src.images);
-
-  if(src.type==='match'){
-    html += '<div class="opts"><p class="eyebrow">Нұсқалар</p>';
-    q.options.forEach(function(o,oi){
-      html += '<div class="opt opt-static"><span class="k">'+LETTERS[oi]+'</span><span class="t">'+esc(o.text)+'</span></div>';
-    });
-    html += '</div><div class="opts"><p class="eyebrow">Әрқайсысына сәйкес әріпті таңдаңыз</p>';
-    src.items.forEach(function(it,ii){
-      html += '<div class="match-row"><span class="m-lbl">'+esc(it.text)+'</span><div class="keys" data-item="'+ii+'" role="group" aria-label="'+esc(it.text)+'">';
-      q.options.forEach(function(o,oi){
-        var chosen = (ans||[])[ii]===o.id;
-        var extra='';
-        if(reveal){
-          if(o.id===it.answer) extra=' ok';
-          else if(chosen) extra=' bad';
-        }
-        html += '<button type="button" class="key'+extra+'" data-id="'+o.id+'" aria-pressed="'+(chosen?'true':'false')+'">'+LETTERS[oi]+'</button>';
-      });
-      html += '</div></div>';
-    });
-    html += '</div>';
-  } else {
-    html += '<div class="opts" id="optlist">';
-    q.options.forEach(function(o,oi){
-      var chosen = src.type==='multi' ? (ans||[]).indexOf(o.id)>=0 : ans===o.id;
-      var style='';
-      if(reveal){
-        var isRight = src.type==='multi' ? src.answer.indexOf(o.id)>=0 : src.answer===o.id;
-        if(isRight) style=' style="border-color:var(--ok);background:var(--ok-tint)"';
-        else if(chosen) style=' style="border-color:var(--bad);background:var(--bad-tint)"';
-      }
-      html += '<button type="button" class="opt" data-id="'+o.id+'" aria-pressed="'+(chosen?'true':'false')+'"'+style+'>'+
-              '<span class="k">'+LETTERS[oi]+'</span><span class="t">'+esc(o.text)+'</span></button>';
-    });
-    html += '</div>';
-    if(src.type==='multi'){
-      html += '<p class="scoring">Бағалау: барлық дұрыс нұсқа белгіленсе — 2 балл; дәл біреуі жетіспесе — 1 балл; артық не қате нұсқа болса — 0 балл.</p>';
-    }
-  }
-
-  html += '<div class="qfoot">'+
-      '<button class="icon-btn" id="q-prev" type="button"'+(k===0?' disabled style="opacity:.45"':'')+'>← Алдыңғы</button>'+
-      '<button class="icon-btn flagbtn" id="q-flag" type="button" aria-pressed="'+(S.flags[k]?'true':'false')+'">Белгілеу</button>'+
-      '<span class="spacer"></span>'+
-      '<button class="btn btn-primary" id="q-next" type="button">'+(k===S.qs.length-1?'Аяқтау':'Келесі →')+'</button>'+
-    '</div>';
-
-  elCard.innerHTML=html;
-
-  elCard.querySelectorAll('.opt[data-id]').forEach(function(b){
-    b.addEventListener('click', function(){ pick(b.dataset.id); });
-  });
-  elCard.querySelectorAll('.keys').forEach(function(box){
-    box.addEventListener('click', function(e){
-      var b=e.target.closest('.key'); if(!b) return;
-      pickMatch(+box.dataset.item, b.dataset.id);
-    });
-  });
-  $('q-prev').addEventListener('click', function(){ go(S.i-1); });
-  $('q-next').addEventListener('click', function(){
-    if(S.i===S.qs.length-1){ $('tb-finish').click(); } else go(S.i+1);
-  });
-  $('q-flag').addEventListener('click', function(){
-    S.flags[k]=!S.flags[k];
-    $('q-flag').setAttribute('aria-pressed', S.flags[k]?'true':'false');
-    renderNav(); persist();
-  });
-
-  $('tb-name').textContent = T.title;
-  $('tb-count').innerHTML = (k+1)+' <small>/ '+S.qs.length+'</small>';
-  var done = S.qs.filter(function(qq,kk){ return answered(qq,S.answers[kk]); }).length;
-  $('tb-bar').style.width = (done/S.qs.length*100)+'%';
-  renderNav();
-}
-
-function pick(id){
-  var k=S.i, q=S.qs[k], src=q.src;
-  if(S.opts.mode==='practice' && S.revealed[k]) return;
-  if(src.type==='single'){
-    S.answers[k] = S.answers[k]===id ? null : id;
-    if(S.opts.mode==='practice' && S.answers[k]) S.revealed[k]=true;
-  } else {
-    var a=S.answers[k]||[], p=a.indexOf(id);
-    if(p>=0) a.splice(p,1); else a.push(id);
-    S.answers[k]=a;
-  }
-  persist(); renderQ();
-}
-
-function pickMatch(itemIndex, id){
-  var k=S.i;
-  if(S.opts.mode==='practice' && S.revealed[k]) return;
-  var a=S.answers[k]||[];
-  a[itemIndex] = a[itemIndex]===id ? null : id;
-  S.answers[k]=a;
-  if(S.opts.mode==='practice' && a.every(function(x){ return !!x; })) S.revealed[k]=true;
-  persist(); renderQ();
-}
-
-function go(k){
-  if(k<0||k>=S.qs.length) return;
-  if(S.opts.mode==='practice' && !S.revealed[S.i] && answered(S.qs[S.i],S.answers[S.i])) S.revealed[S.i]=true;
-  S.i=k; persist(); renderQ();
-  if(window.innerWidth<900) elNavPanel.hidden=true;
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function persist(){
-  if(!S||S.done) return;
-  save(keyState(S.slug), { slug:S.slug, opts:S.opts, order:S.order, answers:S.answers, flags:S.flags, revealed:S.revealed, i:S.i, startedAt:S.startedAt, endsAt:S.endsAt });
-}
-
-/* ---------- result ---------- */
-function finish(auto){
-  S.done=true; drop(keyState(S.slug));
-  var rows = S.qs.map(function(q,k){
-    var r=scoreOne(q,S.answers[k]); r.k=k; return r;
-  });
-  var got = rows.reduce(function(a,r){ return a+r.got; },0);
-  var max = rows.reduce(function(a,r){ return a+r.max; },0);
-  var pct = Math.round(got/max*100);
-  var secs = Math.round((Date.now()-S.startedAt)/1000);
-  save(keyLast(S.slug), { got:got, max:max, pct:pct, secs:secs, at:Date.now() });
-
-  var verdict = pct>=90?'Өте жақсы':pct>=75?'Жақсы':pct>=55?'Қанағаттанарлық':pct>=35?'Әлі пысықтау керек':'Тақырыпты қайта оқу қажет';
-  var groups = [
-    {name:'Бір дұрыс жауап', t:'single'},
-    {name:'Сәйкестендіру', t:'match'},
-    {name:'Бірнеше дұрыс жауап', t:'multi'}
-  ].map(function(g){
-    var sel = rows.filter(function(r){ return S.qs[r.k].src.type===g.t; });
-    return { name:g.name, got:sel.reduce(function(a,r){return a+r.got;},0),
-             max:sel.reduce(function(a,r){return a+r.max;},0),
-             n:sel.length, ok:sel.filter(function(r){return r.state==='ok';}).length };
-  });
-
-  var mm=Math.floor(secs/60), ss=secs%60;
-  var html =
-    '<div class="start-head"><div class="rule"></div><p class="eyebrow">'+esc(T.title)+' · нәтиже'+(auto?' · уақыт бітті':'')+'</p><h1>Сынақ аяқталды</h1></div>'+
-    '<div class="score">'+
-      '<div><div class="big tnum">'+got+'<small> / '+max+'</small></div><p class="meta">жинақталған балл</p></div>'+
-      '<div class="ring" style="--p:'+pct+'"><i class="tnum">'+pct+'%</i></div>'+
-      '<div><p class="verdict">'+verdict+'</p><p class="meta tnum">Уақыт: '+mm+' мин '+(ss<10?'0':'')+ss+' сек · Дұрыс: '+rows.filter(function(r){return r.state==='ok';}).length+' / '+rows.length+'</p></div>'+
-    '</div>'+
-    (COLLECT ? '<div class="sendbox" id="sendbox"><span>Дайындалуда…</span></div>' : '')+
-    '<div class="tiles">'+ groups.map(function(g){
-      return '<div class="tile"><b class="tnum">'+g.got+' / '+g.max+'</b><span>'+g.name+'</span><span class="sub tnum">'+g.ok+' / '+g.n+' сұрақ толық дұрыс</span></div>';
-    }).join('') +'</div>'+
-    '<div class="filters">'+
-      '<span class="eyebrow">Талдау</span>'+
-      '<button class="icon-btn" id="f-all" type="button" aria-pressed="true">Барлығы</button>'+
-      '<button class="icon-btn" id="f-bad" type="button">Тек қателер</button>'+
-      '<span class="spacer" style="flex:1"></span>'+
-      '<button class="icon-btn" id="r-copy" type="button">Нәтижені көшіру</button>'+
-      '<button class="icon-btn" id="r-home" type="button">Басқа нұсқа</button>'+
-      '<button class="btn btn-primary" id="r-again" type="button">Қайта тапсыру</button>'+
-    '</div>'+
-    '<div class="review" id="review">'+ rows.map(function(r){ return reviewCard(r); }).join('') +'</div>';
-
-  elResult.innerHTML=html;
-  elQuiz.hidden=true; elResult.hidden=false;
-  if(topbar) topbar.hidden=true;
-  if(COLLECT && who.name) sendResult(payload(rows, got, max, pct, secs), $('sendbox'));
-
-  var onlyBad=false;
-  function applyFilter(){
-    $('f-all').setAttribute('aria-pressed', onlyBad?'false':'true');
-    $('f-bad').setAttribute('aria-pressed', onlyBad?'true':'false');
-    Array.prototype.forEach.call($('review').children, function(el){
-      el.hidden = onlyBad && el.classList.contains('ok');
-    });
-  }
-  $('f-all').addEventListener('click', function(){ onlyBad=false; applyFilter(); });
-  $('f-bad').addEventListener('click', function(){ onlyBad=true; applyFilter(); });
-  $('r-again').addEventListener('click', function(){ restart(); });
-  $('r-home').addEventListener('click', function(){ home(); });
-  $('r-copy').addEventListener('click', function(){
-    var txt=DATA.title+' — '+T.title+'\nБалл: '+got+' / '+max+' ('+pct+'%)\nУақыт: '+mm+' мин '+ss+' сек\n'+
-      groups.map(function(g){ return g.name+': '+g.got+' / '+g.max; }).join('\n');
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(function(){ toast('Нәтиже көшірілді'); }, function(){ toast('Көшіру мүмкін болмады'); });
-    } else { toast('Көшіру мүмкін болмады'); }
-  });
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-/* ---------- мұғалімге жіберу ---------- */
-var MARK = {ok:'1', part:'h', bad:'0'};
-
-function payload(rows, got, max, pct, secs){
-  var byN = {};
-  S.qs.forEach(function(q,k){ byN[q.src.n] = {q:q, k:k}; });
-  var marks = [], picks = [];
-  T.questions.forEach(function(src){
-    var e = byN[src.n];
-    if(!e){ marks.push('-'); picks.push(''); return; }
-    var r = rows[e.k], ans = S.answers[e.k];
-    marks.push(answered(e.q, ans) ? MARK[r.state] : '-');
-    if(src.type==='match') picks.push((ans||[]).map(function(x){ return x||'-'; }).join(''));
-    else if(src.type==='multi') picks.push((ans||[]).slice().sort().join('') || '-');
-    else picks.push(ans || '-');
-  });
-  return {
-    v:1,
-    name: who.name, group: who.group,
-    test: T.slug, testTitle: T.title,
-    score: got, max: max, pct: pct, seconds: secs,
-    mode: S.opts.mode, shuffled: !!S.opts.shuffle,
-    startedAt: new Date(S.startedAt).toISOString(),
-    finishedAt: new Date().toISOString(),
-    marks: marks.join(''), picks: picks.join('|')
-  };
-}
-
-function sendResult(body, box){
-  function show(cls, html){ box.className='sendbox '+cls; box.innerHTML=html; }
-  show('', '<span>Нәтиже мұғалімге жіберілуде…</span>');
-  var text = JSON.stringify(body);
-  fetch(CFG.submitUrl, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:text
-  }).then(function(res){ return res.json(); }).then(function(j){
-    if(j && j.ok) show('ok','<b>✓ Нәтиже мұғалімге жіберілді.</b>');
-    else throw new Error(j && j.error ? j.error : 'сервер қабылдамады');
-  }).catch(function(){
-    /* CORS оқуға рұқсат бермесе де, жазу өткен болуы мүмкін — соқыр режимде қайталаймыз */
-    fetch(CFG.submitUrl, {method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'}, body:text})
-      .then(function(){
-        show('ok','<b>✓ Нәтиже жіберілді.</b> <span>Растауды оқу мүмкін болмады, бірақ жазба кетті.</span>');
-      })
-      .catch(function(){
-        show('bad','<b>Нәтиже жіберілмеді.</b> <span>Интернетті тексеріп, қайталап көріңіз.</span>'+
-          ' <button class="icon-btn" id="send-retry" type="button">Қайталау</button>');
-        var rb=$('send-retry');
-        if(rb) rb.addEventListener('click', function(){ sendResult(body, box); });
-      });
-  });
-}
-
-function reviewCard(r){
-  var q=S.qs[r.k], src=q.src, ans=S.answers[r.k];
-  var letterOf = function(id){ var i=q.options.findIndex(function(o){return o.id===id;}); return i<0?'—':LETTERS[i]; };
-  var textOf = function(id){ var o=q.options.find(function(x){return x.id===id;}); return o?o.text:'—'; };
-  var h='<article class="rv '+r.state+'">'+
-    '<div class="rv-head"><span class="num">№'+(r.k+1)+'</span><span class="badge'+(src.type==='multi'?' multi':(src.type==='match'?' match':''))+'">'+esc(TYPE_LABEL[src.type])+'</span>'+
-    '<span class="pts tnum">'+r.got+' / '+r.max+' балл</span>'+
-    '<h3 class="rv-q">'+esc(src.q)+'</h3></div>'+
-    (src.images||[]).map(function(u){ return '<figure class="qimg"><img src="'+esc(u)+'" alt="Сұраққа берілген сурет" loading="lazy"></figure>'; }).join('');
-
-  if(src.type==='match'){
-    src.items.forEach(function(it,ii){
-      var mine=(ans||[])[ii];
-      var good = mine===it.answer;
-      h+='<div class="rv-line '+(good?'good':'wrong')+'"><span class="k">'+esc(it.text)+'</span>'+
-         '<span class="t">'+(mine?letterOf(mine)+'. '+esc(textOf(mine)):'жауапсыз')+
-         (good?'':' <br><b>Дұрысы: '+letterOf(it.answer)+'. '+esc(textOf(it.answer))+'</b>')+'</span></div>';
-    });
-  } else if(src.type==='multi'){
-    var sel=ans||[];
-    if(!sel.length) h+='<p class="rv-empty">Жауап берілмеді.</p>';
-    sel.forEach(function(id){
-      var good=src.answer.indexOf(id)>=0;
-      h+='<div class="rv-line '+(good?'good':'wrong')+'"><span class="k">'+letterOf(id)+'</span><span class="t">'+esc(textOf(id))+(good?'':' — қате нұсқа')+'</span></div>';
-    });
-    var missed=src.answer.filter(function(id){ return sel.indexOf(id)<0; });
-    missed.forEach(function(id){
-      h+='<div class="rv-line"><span class="k">'+letterOf(id)+'</span><span class="t"><b>Қалып қойған дұрыс жауап:</b> '+esc(textOf(id))+'</span></div>';
-    });
-  } else {
-    if(ans==null) h+='<p class="rv-empty">Жауап берілмеді.</p>';
-    else h+='<div class="rv-line '+(r.state==='ok'?'good':'wrong')+'"><span class="k">'+letterOf(ans)+'</span><span class="t">'+esc(textOf(ans))+'</span></div>';
-    if(r.state!=='ok') h+='<div class="rv-line good"><span class="k">'+letterOf(src.answer)+'</span><span class="t"><b>Дұрыс жауап:</b> '+esc(textOf(src.answer))+'</span></div>';
-  }
-  return h+'</article>';
-}
-
-var modalOpen=false;
-function askConfirm(msg, onYes){
-  if(modalOpen) return;
-  modalOpen=true;
-  var back=document.createElement('div');
-  back.className='modal-back';
-  back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-label="Растау">'+
-    '<p class="m-text">'+esc(msg)+'</p>'+
-    '<div class="m-btns">'+
-      '<button type="button" class="btn" data-no>Болдырмау</button>'+
-      '<button type="button" class="btn btn-primary" data-yes>Иә, аяқтау</button>'+
-    '</div></div>';
-  function close(){ modalOpen=false; back.remove(); document.removeEventListener('keydown', onKey, true); }
-  function onKey(e){
-    if(e.key==='Escape'){ e.stopPropagation(); close(); }
-    else if(e.key==='Enter'){ e.stopPropagation(); close(); onYes(); }
-    else e.stopPropagation();
-  }
-  back.addEventListener('click', function(e){
-    if(e.target===back || e.target.closest('[data-no]')) close();
-    else if(e.target.closest('[data-yes]')){ close(); onYes(); }
-  });
-  document.addEventListener('keydown', onKey, true);
-  document.body.appendChild(back);
-  back.querySelector('[data-yes]').focus();
-}
-
-function askChoice(msg, yesLabel, noLabel, onYes, onNo){
-  if(modalOpen) return;
-  modalOpen=true;
-  var back=document.createElement('div');
-  back.className='modal-back';
-  back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-label="Таңдау">'+
-    '<p class="m-text">'+esc(msg)+'</p>'+
-    '<div class="m-btns">'+
-      '<button type="button" class="btn" data-no>'+esc(noLabel)+'</button>'+
-      '<button type="button" class="btn btn-primary" data-yes>'+esc(yesLabel)+'</button>'+
-    '</div></div>';
-  function close(){ modalOpen=false; back.remove(); document.removeEventListener('keydown', onKey, true); }
-  function onKey(e){
-    if(e.key==='Escape'){ e.stopPropagation(); close(); if(onNo) onNo(); }
-    else if(e.key==='Enter'){ e.stopPropagation(); close(); onYes(); }
-    else e.stopPropagation();
-  }
-  back.addEventListener('click', function(e){
-    if(e.target===back){ close(); if(onNo) onNo(); }
-    else if(e.target.closest('[data-no]')){ close(); if(onNo) onNo(); }
-    else if(e.target.closest('[data-yes]')){ close(); onYes(); }
-  });
-  document.addEventListener('keydown', onKey, true);
-  document.body.appendChild(back);
-  back.querySelector('[data-yes]').focus();
-}
-
-function toast(msg){
-  var t=document.createElement('div'); t.className='toast'; t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(function(){ t.remove(); }, 2200);
-}
-
-/* ---------- flow ---------- */
-var timerId=null;
-function begin(state){
-  S=hydrate(state);
-  mountTopbar(); topbar.hidden=false;
-  elStart.hidden=true; elResult.hidden=true; elId.hidden=true; elQuiz.hidden=false;
-  elNavPanel.hidden = window.innerWidth<900;
-  renderQ(); tick();
-  if(timerId) clearInterval(timerId);
-  timerId=setInterval(tick,1000);
-  persist();
-}
-function home(){
-  if(timerId) clearInterval(timerId);
-  S=null; T=null;
-  elQuiz.hidden=true; elResult.hidden=true; elId.hidden=true; elStart.hidden=false;
-  if(topbar) topbar.hidden=true;
-  renderHome();
-  window.scrollTo({top:0});
-}
-function restart(){
-  if(timerId) clearInterval(timerId);
-  var t=T; S=null;
-  drop(keyState(t.slug));
-  T=t; begin(buildSession());
-}
-
-function renderHome(){
-  var list=$('test-list');
-  var qn=TESTS.reduce(function(a,t){ return a+t.questions.length; },0);
-  $('home-lede').textContent = TESTS.length+' нұсқа, барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен '+
-    'жеке нәтижесі болады — кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
-  var w=$('who-line');
-  if(w){
-    if(COLLECT && who.name){
-      w.hidden=false;
-      w.innerHTML='Нәтиже <b>'+esc(who.name)+(who.group?', '+esc(who.group):'')+
-        '</b> атынан жіберіледі. <button class="icon-btn" id="who-edit" type="button">Өзгерту</button>';
-      $('who-edit').addEventListener('click', function(){ T=null; askWhoStandalone(); });
-    } else w.hidden=true;
-  }
-  list.innerHTML='';
-  TESTS.forEach(function(t, k){
-    var st=load(keyState(t.slug)), last=load(keyLast(t.slug));
-    var imgs=t.questions.reduce(function(a,q){
-      return a + (q.images?q.images.length:0) + ((q.context&&q.context.images)?q.context.images.length:0);
-    },0);
-    var chips='<span>'+t.questions.length+' сұрақ</span><span>·</span><span>'+t.total+' балл</span>';
-    if(imgs) chips+='<span class="chip">суретті</span>';
-    if(st) chips+='<span class="chip resume">жалғасады</span>';
-    if(last) chips+='<span class="chip done">'+last.got+' / '+last.max+'</span>';
-    var b=document.createElement('button');
-    b.type='button'; b.className='test-card';
-    var num=(t.title.match(/\d+/)||[k+1])[0];
-    b.innerHTML='<span class="tc-n">'+esc(num)+'</span>'+
-      '<span class="tc-main"><span class="tc-title">'+esc(t.title)+'</span>'+
-      '<span class="tc-meta">'+chips+'</span></span>'+
-      '<span class="tc-go" aria-hidden="true">→</span>';
-    b.addEventListener('click', function(){ openTest(k); });
-    list.appendChild(b);
-  });
-}
-
-function openTest(k){
-  T = TESTS[k];
-  if(COLLECT && !who.name){ askWho(); return; }
-  enterTest();
-}
-
-function askWhoStandalone(){
-  $('id-eyebrow').textContent = 'Деректерді өзгерту';
-  $('in-name').value = who.name || '';
-  $('in-group').value = who.group || '';
-  $('id-err').hidden = true;
-  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=true; elId.hidden=false;
-  if(topbar) topbar.hidden=true;
-  window.scrollTo({top:0});
-  setTimeout(function(){ $('in-name').focus(); }, 30);
-}
-
-function askWho(){
-  $('id-eyebrow').textContent = T.title;
-  $('in-name').value = who.name || '';
-  $('in-group').value = who.group || '';
-  $('id-err').hidden = true;
-  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=true; elId.hidden=false;
-  if(topbar) topbar.hidden=true;
-  window.scrollTo({top:0});
-  setTimeout(function(){ $('in-name').focus(); }, 30);
-}
-
-function enterTest(){
-  var st = load(keyState(T.slug));
-  if(st){
-    askChoice('«'+T.title+'» аяқталмай қалған. Жалғастырасыз ба?',
-      'Жалғастыру', 'Басынан бастау',
-      function(){ st.done=false; begin(st); },
-      function(){ drop(keyState(T.slug)); begin(buildSession()); });
-  } else begin(buildSession());
-}
-
-$('id-go').addEventListener('click', function(){
-  var nm=$('in-name').value.trim(), gr=$('in-group').value.trim();
-  if(nm.length < 2){
-    $('id-err').textContent='Аты-жөніңізді жазыңыз — нәтиже осы атпен жіберіледі.';
-    $('id-err').hidden=false; $('in-name').focus(); return;
-  }
-  who = {name:nm, group:gr};
-  save(KEY_WHO, who);
-  elId.hidden=true;
-  if(T) enterTest(); else home();
+function msg(t){ var m=$('gate-msg'); if(t){ m.textContent=t; m.hidden=false; } else m.hidden=true; }
+$('gate-go').addEventListener('click', gateGo);
+$('in-key').addEventListener('keydown', function(e){ if(e.key==='Enter') gateGo(); });
+$('b-exit').addEventListener('click', function(){
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  $('app').hidden=true; $('gate').hidden=false; $('in-key').value=''; msg(null);
 });
-$('id-back').addEventListener('click', function(){ elId.hidden=true; home(); });
-$('in-group').addEventListener('keydown', function(e){ if(e.key==='Enter') $('id-go').click(); });
-$('in-name').addEventListener('keydown', function(e){ if(e.key==='Enter') $('in-group').focus(); });
-
-/* ---------- keyboard ---------- */
-document.addEventListener('keydown', function(e){
-  if(!S || S.done || elQuiz.hidden || modalOpen) return;
-  if(e.metaKey||e.ctrlKey||e.altKey) return;
-  var tag=(e.target.tagName||'').toLowerCase();
-  if(tag==='input'||tag==='textarea') return;
-  if(e.key==='ArrowRight'){ go(S.i+1); e.preventDefault(); }
-  else if(e.key==='ArrowLeft'){ go(S.i-1); e.preventDefault(); }
-  else if(/^[1-6]$/.test(e.key)){
-    var idx=+e.key-1, q=S.qs[S.i];
-    if(q.src.type==='match') return;
-    var b=elCard.querySelectorAll('.opt[data-id]')[idx];
-    if(b){ b.click(); e.preventDefault(); }
-  }
+$('b-refresh').addEventListener('click', function(){
+  var k; try{ k=localStorage.getItem(KEY); }catch(e){}
+  if(k) load(k, false);
 });
-window.addEventListener('beforeunload', persist);
 
-/* ---------- boot ---------- */
-function start(){ renderHome(); }
-function resume(d){
-  start();
-  if(d && d.s && d.s.slug){
-    var t=TESTS.filter(function(x){ return x.slug===d.s.slug; })[0];
-    if(t){ T=t; begin(d.s); }
-  }
-}
-try{
-  if(window.claude && window.claude.hot){
-    window.claude.hot.snapshot(function(){
-      return S && !S.done ? {s:{slug:S.slug,opts:S.opts,order:S.order,answers:S.answers,flags:S.flags,revealed:S.revealed,i:S.i,startedAt:S.startedAt,endsAt:S.endsAt}} : {};
+function load(key, fromGate){
+  if(!CFG.submitUrl){ msg('submitUrl бапталмаған — алдымен config.json толтырылуы керек.'); return; }
+  msg(null);
+  if(fromGate) $('gate-go').textContent='Жүктелуде…';
+  fetch(CFG.submitUrl + (CFG.submitUrl.indexOf('?')<0?'?':'&') + 'key=' + encodeURIComponent(key))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      $('gate-go').textContent='Ашу';
+      if(!j || !j.ok){ msg(j && j.error ? j.error : 'Деректерді алу мүмкін болмады.'); return; }
+      try{ localStorage.setItem(KEY, key); }catch(e){}
+      rows = j.rows || [];
+      $('gate').hidden=true; $('app').hidden=false;
+      fillFilters(); render();
+    })
+    .catch(function(){
+      $('gate-go').textContent='Ашу';
+      msg('Байланыс болмады. Apps Script «Anyone» деңгейінде жарияланғанын тексеріңіз.');
     });
-    window.claude.hot.ready(resume);
-  } else start();
-}catch(e){ start(); }
+}
+
+/* ---------- сүзгілер ---------- */
+function fillFilters(){
+  var tsel=$('f-test'), gsel=$('f-group');
+  var tests={}, groups={};
+  rows.forEach(function(r){
+    if(r.testTitle) tests[r.testTitle]=1;
+    if(r.group) groups[r.group]=1;
+  });
+  function fill(sel, obj, all){
+    var cur=sel.value;
+    sel.innerHTML='<option value="">'+all+'</option>';
+    Object.keys(obj).sort().forEach(function(k){
+      var o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
+    });
+    sel.value=cur;
+  }
+  fill(tsel, tests, 'Барлық нұсқа');
+  fill(gsel, groups, 'Барлық сынып');
+}
+['f-test','f-group'].forEach(function(id){ $(id).addEventListener('change', render); });
+$('f-name').addEventListener('input', render);
+
+function filtered(){
+  var t=$('f-test').value, g=$('f-group').value, q=$('f-name').value.trim().toLowerCase();
+  return rows.filter(function(r){
+    if(t && r.testTitle!==t) return false;
+    if(g && r.group!==g) return false;
+    if(q && String(r.name).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+}
+
+/* ---------- көрсету ---------- */
+function bars(el, items, maxVal, fmt){
+  if(!items.length){ el.innerHTML='<p class="empty">Дерек жоқ.</p>'; return; }
+  var lw = Math.min(160, Math.max(64, Math.max.apply(null, items.map(function(i){ return i.label.length; }))*8));
+  el.style.setProperty('--lw', lw+'px');
+  el.innerHTML = items.map(function(i){
+    var w = maxVal ? Math.round(i.value/maxVal*100) : 0;
+    return '<div class="row"><span class="lbl" title="'+esc(i.label)+'">'+esc(i.label)+'</span>'+
+      '<span class="track"><i style="width:'+w+'%"></i></span>'+
+      '<span class="val tnum">'+esc(fmt(i))+'</span></div>';
+  }).join('');
+}
+
+function render(){
+  var f = filtered();
+
+  /* KPI */
+  var people = {};
+  f.forEach(function(r){ people[r.name+'|'+r.group]=1; });
+  var avg = f.length ? Math.round(f.reduce(function(a,r){ return a+r.pct; },0)/f.length) : 0;
+  var avgT = f.length ? Math.round(f.reduce(function(a,r){ return a+r.seconds; },0)/f.length) : 0;
+  var best = f.length ? f.reduce(function(a,r){ return r.pct>a.pct?r:a; }) : null;
+  $('tiles').innerHTML =
+    tile(f.length, 'тапсыру') +
+    tile(Object.keys(people).length, 'оқушы') +
+    tile(avg+'%', 'орташа нәтиже') +
+    tile(f.length ? Math.round(avgT/60)+' мин' : '—', 'орташа уақыт') +
+    tile(best ? best.pct+'%' : '—', best ? 'ең жоғары · '+best.name : 'ең жоғары');
+
+  /* нұсқалар */
+  var byTest={};
+  f.forEach(function(r){
+    var k=r.testTitle||r.test; (byTest[k]=byTest[k]||[]).push(r);
+  });
+  var tItems=Object.keys(byTest).sort().map(function(k){
+    var v=byTest[k], a=Math.round(v.reduce(function(s,r){ return s+r.pct; },0)/v.length);
+    return {label:k, value:a, n:v.length};
+  });
+  bars($('ch-tests'), tItems, 100, function(i){ return i.value+'% · '+i.n+' тапсыру'; });
+
+  /* сыныптар */
+  var byG={};
+  f.forEach(function(r){ var k=r.group||'көрсетілмеген'; (byG[k]=byG[k]||[]).push(r); });
+  var gItems=Object.keys(byG).sort().map(function(k){
+    var v=byG[k], a=Math.round(v.reduce(function(s,r){ return s+r.pct; },0)/v.length);
+    return {label:k, value:a, n:v.length};
+  });
+  bars($('ch-groups'), gItems, 100, function(i){ return i.value+'% · '+i.n+' тапсыру'; });
+
+  /* таралым */
+  var buckets=[[0,20],[20,40],[40,60],[60,80],[80,101]];
+  var dist=buckets.map(function(b){
+    var n=f.filter(function(r){ return r.pct>=b[0] && r.pct<b[1]; }).length;
+    return {label:b[0]+'–'+(b[1]===101?100:b[1])+'%', value:n};
+  });
+  var dmax=Math.max.apply(null, dist.map(function(d){ return d.value; }).concat([1]));
+  bars($('ch-dist'), dist, dmax, function(i){ return i.value+' оқушы'; });
+
+  renderQuestions(f);
+  renderTable(f);
+}
+
+function tile(v, label){
+  return '<div class="tile"><b class="tnum">'+esc(v)+'</b><span>'+esc(label)+'</span></div>';
+}
+
+function renderQuestions(f){
+  var t = $('f-test').value;
+  var sub=$('q-sub'), grid=$('ch-q'), hard=$('q-hard');
+  var sel = t ? f : [];
+  if(!t){
+    sub.textContent='Сұрақ деңгейіндегі талдау үшін жоғарыдан бір нұсқаны таңдаңыз.';
+    grid.innerHTML=''; hard.innerHTML=''; return;
+  }
+  if(!sel.length){ sub.textContent='Бұл нұсқа бойынша дерек жоқ.'; grid.innerHTML=''; hard.innerHTML=''; return; }
+  var test = TESTS.filter(function(x){ return x.title===t; })[0];
+  var qn = test ? test.questions.length : (sel[0].marks||'').length;
+  sub.textContent = t+' · '+sel.length+' тапсыру бойынша әр сұраққа дұрыс жауап берген оқушы үлесі.';
+
+  var stat=[];
+  for(var i=0;i<qn;i++){
+    var full=0, part=0, tot=0;
+    sel.forEach(function(r){
+      var c=(r.marks||'')[i]; if(c===undefined) return;
+      tot++; if(c==='1') full++; else if(c==='h') part++;
+    });
+    var p = tot ? Math.round((full+part*0.5)/tot*100) : 0;
+    stat.push({i:i+1, p:p, tot:tot, q:test?test.questions[i]:null});
+  }
+  grid.innerHTML = stat.map(function(s){
+    var col = s.p>=70?'var(--good)':(s.p>=40?'var(--warn)':'var(--crit)');
+    return '<div class="qcell" title="'+esc(s.q?s.q.q:('Сұрақ '+s.i))+'">'+
+      '<span class="swatch" style="background:'+col+'"></span>'+
+      '<span class="n tnum">№'+s.i+'</span>'+
+      '<span class="p tnum">'+s.p+'%</span></div>';
+  }).join('');
+
+  var worst = stat.slice().sort(function(a,b){ return a.p-b.p; }).slice(0,5);
+  hard.innerHTML = '<p class="eyebrow" style="margin-top:6px">Ең қиын бес сұрақ</p>'+
+    '<div class="chart" style="--lw:150px;margin-top:8px">'+ worst.map(function(s){
+      return '<div class="row"><span class="lbl" title="'+esc(s.q?s.q.q:'')+'">№'+s.i+' '+
+        esc(s.q?s.q.q.slice(0,40):'')+'</span>'+
+        '<span class="track"><i style="width:'+s.p+'%;background:'+
+        (s.p>=70?'var(--good)':(s.p>=40?'var(--warn)':'var(--crit)'))+'"></i></span>'+
+        '<span class="val tnum">'+s.p+'%</span></div>';
+    }).join('') +'</div>';
+}
+
+function renderTable(f){
+  $('t-sub').textContent = f.length+' жазба. Баған тақырыбын басып сұрыптауға болады.';
+  var sorted = f.slice().sort(function(a,b){
+    var x=a[sortK], y=b[sortK];
+    if(typeof x==='string') return sortDir*x.localeCompare(y,'kk');
+    return sortDir*((x||0)-(y||0));
+  });
+  $('tbody').innerHTML = sorted.length ? sorted.map(function(r){
+    var col = r.pct>=70?'var(--ok-tint)':(r.pct>=40?'var(--surface-2)':'var(--bad-tint)');
+    var ink = r.pct>=70?'var(--ok)':(r.pct>=40?'var(--ink-2)':'var(--bad)');
+    return '<tr><td class="tnum">'+esc(fmtDate(r.at))+'</td>'+
+      '<td>'+esc(r.name)+'</td><td>'+esc(r.group||'—')+'</td>'+
+      '<td>'+esc(r.testTitle||r.test)+'</td>'+
+      '<td class="num">'+r.score+' / '+r.max+'</td>'+
+      '<td class="num"><span class="pill" style="background:'+col+';color:'+ink+'">'+r.pct+'%</span></td>'+
+      '<td class="num">'+esc(mmss(r.seconds))+'</td></tr>';
+  }).join('') : '<tr><td colspan="7"><p class="empty">Сүзгіге сәйкес жазба жоқ.</p></td></tr>';
+}
+
+Array.prototype.forEach.call(document.querySelectorAll('#tbl th'), function(th){
+  th.addEventListener('click', function(){
+    var k=th.dataset.k;
+    if(sortK===k) sortDir=-sortDir; else { sortK=k; sortDir=(k==='name'||k==='group')?1:-1; }
+    renderTable(filtered());
+  });
+});
+
+/* ---------- CSV ---------- */
+$('b-csv').addEventListener('click', function(){
+  var f=filtered();
+  if(!f.length) return;
+  var cols=['at','name','group','testTitle','score','max','pct','seconds','mode','marks','picks'];
+  var head=['Уақыты','Аты-жөні','Сынып','Нұсқа','Балл','Макс','Пайыз','Секунд','Режим','Белгілер','Жауаптар'];
+  var q=function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; };
+  var csv=[head.map(q).join(',')].concat(f.map(function(r){
+    return cols.map(function(c){ return q(r[c]); }).join(',');
+  })).join('\r\n');
+  var blob=new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='natijeler-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+});
+
+/* ---------- автокіру ---------- */
+(function(){
+  var k; try{ k=localStorage.getItem(KEY); }catch(e){}
+  if(k && CFG.submitUrl){ $('in-key').value=k; load(k, true); }
+})();
 })();
 </script>
 </body>

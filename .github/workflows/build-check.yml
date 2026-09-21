@@ -25,8 +25,8 @@ jobs:
 
       - name: Құрастырылған файлдар жаңа ма
         run: |
-          if ! git diff --exit-code --stat -- index.html artifact.html; then
-            echo "::error::index.html / artifact.html ескірген. Жергілікті жерде 'python3 build.py' жүргізіп, нәтижесін коммит етіңіз."
+          if ! git diff --exit-code --stat -- index.html artifact.html dashboard.html; then
+            echo "::error::Құрастырылған беттер ескірген. Жергілікті жерде 'python3 build.py' жүргізіп, нәтижесін коммит етіңіз."
             exit 1
           fi
           echo "Құрастырылған файлдар questions.json-мен сәйкес."

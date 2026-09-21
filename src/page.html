@@ -92,6 +92,21 @@ button{font:inherit;color:inherit;cursor:pointer}
 .chip.resume{background:var(--flag-tint);color:var(--flag);border-color:var(--flag-line)}
 .qimg{margin:0;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden;background:var(--surface-2)}
 .qimg img{display:block;width:100%;height:auto;max-height:min(70vh,560px);object-fit:contain}
+.idform{display:flex;flex-direction:column;gap:14px;padding:20px}
+.idform h2{font-size:18px}
+.idform label{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:700;color:var(--ink-2)}
+.idform input{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line-2);border-radius:var(--r-s);padding:10px 12px;width:100%}
+.idform input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
+.idform .err{font-size:13px;color:var(--bad);font-weight:700}
+.sendbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;padding:12px 15px;
+  border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface-2)}
+.sendbox.ok{background:var(--ok-tint);border-color:var(--ok-line);color:var(--ok)}
+.sendbox.bad{background:var(--bad-tint);border-color:var(--bad-line);color:var(--bad)}
+.sendbox b{font-weight:700}
+.sendbox code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
+  background:var(--surface);border:1px solid var(--line-2);border-radius:5px;padding:2px 6px;
+  color:var(--ink);overflow-wrap:anywhere}
 .tb-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}
 .sec{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface)}
 .sec .n{font-family:var(--serif);color:var(--accent);font-weight:700}
@@ -256,9 +271,33 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
     <div class="start-head" style="gap:6px">
       <p class="eyebrow">Нұсқаны таңдаңыз</p>
     </div>
+    <p class="note" id="who-line" hidden></p>
     <div class="test-list" id="test-list"></div>
 
     <p class="note">Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді. Пернетақтамен де жұмыс істейді: <kbd>1</kbd>–<kbd>6</kbd> нұсқаны таңдайды, <kbd>←</kbd> <kbd>→</kbd> сұрақтарды ауыстырады.</p>
+  </section>
+
+  <!-- ============ ОҚУШЫ ДЕРЕКТЕРІ ============ -->
+  <section id="screen-id" class="start" hidden>
+    <div class="start-head">
+      <div class="rule"></div>
+      <p class="eyebrow" id="id-eyebrow"></p>
+      <h1>Өзіңіз туралы</h1>
+      <p class="lede">Нәтижеңіз мұғалімге осы атпен жіберіледі. Бір рет енгізсеңіз, келесі жолы есте қалады.</p>
+    </div>
+    <div class="panel idform">
+      <label for="in-name">Аты-жөні
+        <input id="in-name" type="text" autocomplete="name" maxlength="120" placeholder="Мысалы: Айдана Серікқызы">
+      </label>
+      <label for="in-group">Сынып немесе тобыңыз
+        <input id="in-group" type="text" autocomplete="off" maxlength="60" placeholder="Мысалы: 11Ә">
+      </label>
+      <p class="err" id="id-err" hidden></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="id-go" type="button">Тестті бастау</button>
+        <button class="btn" id="id-back" type="button">Артқа</button>
+      </div>
+    </div>
   </section>
 
   <!-- ============ QUIZ ============ -->
@@ -306,9 +345,14 @@ function drop(k){ try{ localStorage.removeItem(k); }catch(e){} }
 /* ---------- dom ---------- */
 var $ = function(id){ return document.getElementById(id); };
 var elStart=$('screen-start'), elQuiz=$('screen-quiz'), elResult=$('screen-result');
+var elId=$('screen-id');
 var elCard=$('qcard'), elNavGrid=$('navgrid'), elNavPanel=$('navpanel'), elNavHint=$('navhint');
 var topbar=null;
 
+var CFG = DATA.config || {};
+var COLLECT = !!CFG.submitUrl;                 /* нәтиже жиналатын режим */
+var KEY_WHO = 'bio-ubt-v2-who';
+var who = load(KEY_WHO) || {name:'', group:''};
 var S = null;      /* running session */
 var opts = { minutes:60, shuffle:false, mode:'exam' };
 
@@ -625,6 +669,7 @@ function finish(auto){
       '<div class="ring" style="--p:'+pct+'"><i class="tnum">'+pct+'%</i></div>'+
       '<div><p class="verdict">'+verdict+'</p><p class="meta tnum">Уақыт: '+mm+' мин '+(ss<10?'0':'')+ss+' сек · Дұрыс: '+rows.filter(function(r){return r.state==='ok';}).length+' / '+rows.length+'</p></div>'+
     '</div>'+
+    (COLLECT ? '<div class="sendbox" id="sendbox"><span>Дайындалуда…</span></div>' : '')+
     '<div class="tiles">'+ groups.map(function(g){
       return '<div class="tile"><b class="tnum">'+g.got+' / '+g.max+'</b><span>'+g.name+'</span><span class="sub tnum">'+g.ok+' / '+g.n+' сұрақ толық дұрыс</span></div>';
     }).join('') +'</div>'+
@@ -642,6 +687,7 @@ function finish(auto){
   elResult.innerHTML=html;
   elQuiz.hidden=true; elResult.hidden=false;
   if(topbar) topbar.hidden=true;
+  if(COLLECT && who.name) sendResult(payload(rows, got, max, pct, secs), $('sendbox'));
 
   var onlyBad=false;
   function applyFilter(){
@@ -663,6 +709,61 @@ function finish(auto){
     } else { toast('Көшіру мүмкін болмады'); }
   });
   window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------- мұғалімге жіберу ---------- */
+var MARK = {ok:'1', part:'h', bad:'0'};
+
+function payload(rows, got, max, pct, secs){
+  var byN = {};
+  S.qs.forEach(function(q,k){ byN[q.src.n] = {q:q, k:k}; });
+  var marks = [], picks = [];
+  T.questions.forEach(function(src){
+    var e = byN[src.n];
+    if(!e){ marks.push('-'); picks.push(''); return; }
+    var r = rows[e.k], ans = S.answers[e.k];
+    marks.push(answered(e.q, ans) ? MARK[r.state] : '-');
+    if(src.type==='match') picks.push((ans||[]).map(function(x){ return x||'-'; }).join(''));
+    else if(src.type==='multi') picks.push((ans||[]).slice().sort().join('') || '-');
+    else picks.push(ans || '-');
+  });
+  return {
+    v:1,
+    name: who.name, group: who.group,
+    test: T.slug, testTitle: T.title,
+    score: got, max: max, pct: pct, seconds: secs,
+    mode: S.opts.mode, shuffled: !!S.opts.shuffle,
+    startedAt: new Date(S.startedAt).toISOString(),
+    finishedAt: new Date().toISOString(),
+    marks: marks.join(''), picks: picks.join('|')
+  };
+}
+
+function sendResult(body, box){
+  function show(cls, html){ box.className='sendbox '+cls; box.innerHTML=html; }
+  show('', '<span>Нәтиже мұғалімге жіберілуде…</span>');
+  var text = JSON.stringify(body);
+  fetch(CFG.submitUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:text
+  }).then(function(res){ return res.json(); }).then(function(j){
+    if(j && j.ok) show('ok','<b>✓ Нәтиже мұғалімге жіберілді.</b>');
+    else throw new Error(j && j.error ? j.error : 'сервер қабылдамады');
+  }).catch(function(){
+    /* CORS оқуға рұқсат бермесе де, жазу өткен болуы мүмкін — соқыр режимде қайталаймыз */
+    fetch(CFG.submitUrl, {method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body:text})
+      .then(function(){
+        show('ok','<b>✓ Нәтиже жіберілді.</b> <span>Растауды оқу мүмкін болмады, бірақ жазба кетті.</span>');
+      })
+      .catch(function(){
+        show('bad','<b>Нәтиже жіберілмеді.</b> <span>Интернетті тексеріп, қайталап көріңіз.</span>'+
+          ' <button class="icon-btn" id="send-retry" type="button">Қайталау</button>');
+        var rb=$('send-retry');
+        if(rb) rb.addEventListener('click', function(){ sendResult(body, box); });
+      });
+  });
 }
 
 function reviewCard(r){
@@ -767,7 +868,7 @@ var timerId=null;
 function begin(state){
   S=hydrate(state);
   mountTopbar(); topbar.hidden=false;
-  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=false;
+  elStart.hidden=true; elResult.hidden=true; elId.hidden=true; elQuiz.hidden=false;
   elNavPanel.hidden = window.innerWidth<900;
   renderQ(); tick();
   if(timerId) clearInterval(timerId);
@@ -777,7 +878,7 @@ function begin(state){
 function home(){
   if(timerId) clearInterval(timerId);
   S=null; T=null;
-  elQuiz.hidden=true; elResult.hidden=true; elStart.hidden=false;
+  elQuiz.hidden=true; elResult.hidden=true; elId.hidden=true; elStart.hidden=false;
   if(topbar) topbar.hidden=true;
   renderHome();
   window.scrollTo({top:0});
@@ -794,6 +895,15 @@ function renderHome(){
   var qn=TESTS.reduce(function(a,t){ return a+t.questions.length; },0);
   $('home-lede').textContent = TESTS.length+' нұсқа, барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен '+
     'жеке нәтижесі болады — кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
+  var w=$('who-line');
+  if(w){
+    if(COLLECT && who.name){
+      w.hidden=false;
+      w.innerHTML='Нәтиже <b>'+esc(who.name)+(who.group?', '+esc(who.group):'')+
+        '</b> атынан жіберіледі. <button class="icon-btn" id="who-edit" type="button">Өзгерту</button>';
+      $('who-edit').addEventListener('click', function(){ T=null; askWhoStandalone(); });
+    } else w.hidden=true;
+  }
   list.innerHTML='';
   TESTS.forEach(function(t, k){
     var st=load(keyState(t.slug)), last=load(keyLast(t.slug));
@@ -818,6 +928,33 @@ function renderHome(){
 
 function openTest(k){
   T = TESTS[k];
+  if(COLLECT && !who.name){ askWho(); return; }
+  enterTest();
+}
+
+function askWhoStandalone(){
+  $('id-eyebrow').textContent = 'Деректерді өзгерту';
+  $('in-name').value = who.name || '';
+  $('in-group').value = who.group || '';
+  $('id-err').hidden = true;
+  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=true; elId.hidden=false;
+  if(topbar) topbar.hidden=true;
+  window.scrollTo({top:0});
+  setTimeout(function(){ $('in-name').focus(); }, 30);
+}
+
+function askWho(){
+  $('id-eyebrow').textContent = T.title;
+  $('in-name').value = who.name || '';
+  $('in-group').value = who.group || '';
+  $('id-err').hidden = true;
+  elStart.hidden=true; elResult.hidden=true; elQuiz.hidden=true; elId.hidden=false;
+  if(topbar) topbar.hidden=true;
+  window.scrollTo({top:0});
+  setTimeout(function(){ $('in-name').focus(); }, 30);
+}
+
+function enterTest(){
   var st = load(keyState(T.slug));
   if(st){
     askChoice('«'+T.title+'» аяқталмай қалған. Жалғастырасыз ба?',
@@ -826,6 +963,21 @@ function openTest(k){
       function(){ drop(keyState(T.slug)); begin(buildSession()); });
   } else begin(buildSession());
 }
+
+$('id-go').addEventListener('click', function(){
+  var nm=$('in-name').value.trim(), gr=$('in-group').value.trim();
+  if(nm.length < 2){
+    $('id-err').textContent='Аты-жөніңізді жазыңыз — нәтиже осы атпен жіберіледі.';
+    $('id-err').hidden=false; $('in-name').focus(); return;
+  }
+  who = {name:nm, group:gr};
+  save(KEY_WHO, who);
+  elId.hidden=true;
+  if(T) enterTest(); else home();
+});
+$('id-back').addEventListener('click', function(){ elId.hidden=true; home(); });
+$('in-group').addEventListener('keydown', function(e){ if(e.key==='Enter') $('id-go').click(); });
+$('in-name').addEventListener('keydown', function(e){ if(e.key==='Enter') $('in-group').focus(); });
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', function(e){

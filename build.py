@@ -79,7 +79,9 @@ def check(name, data):
 def main() -> None:
     template = (ROOT / "src" / "page.html").read_text(encoding="utf-8")
     tests = load_tests()
-    payload = {"title": TITLE, "tests": tests}
+    cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+    config = {"submitUrl": cfg.get("submitUrl", "").strip()}
+    payload = {"title": TITLE, "tests": tests, "config": config}
     blob = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if "</script" in blob.lower():
         raise SystemExit("деректер ішінде </script> кездесті")
@@ -94,11 +96,25 @@ def main() -> None:
                     body_block=page[split:].strip() + "\n"),
         encoding="utf-8")
 
+    # ---- мұғалім дашборды ----
+    dash_src = ROOT / "src" / "dashboard.html"
+    if dash_src.exists():
+        dash = dash_src.read_text(encoding="utf-8").replace("__DATA__", blob)
+        d_split = dash.index('<div class="wrap">')
+        (ROOT / "dashboard.html").write_text(
+            HEAD.format(description="Оқушылардың тест нәтижелерін талдайтын мұғалім дашборды.",
+                        head_block=dash[:d_split].strip() + "\n",
+                        body_block=dash[d_split:].strip() + "\n"),
+            encoding="utf-8")
+
     qn = sum(len(t["questions"]) for t in tests)
     pts = sum(t["total"] for t in tests)
     print(f"{len(tests)} тест, {qn} сұрақ, {pts} балл -> index.html, artifact.html")
     for t in tests:
         print(f"  {t['title']}: {len(t['questions'])} сұрақ, {t['total']} балл")
+    print("нәтиже жинау: " + (config["submitUrl"] or "өшірулі (config.json бос)"))
+    if dash_src.exists():
+        print("дашборд: dashboard.html")
 
 
 if __name__ == "__main__":
