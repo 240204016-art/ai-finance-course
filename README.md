@@ -69,8 +69,18 @@ python3 build.py
 
 ## Жариялау
 
-`main` бұтағына әр пуш сайын `.github/workflows/pages.yml` тестті қайта құрастырып,
-GitHub Pages-ке жібереді. Бірінші іске қосылғанда Pages автоматты қосылады
-(`actions/configure-pages`), қосымша баптау қажет емес.
+Сайт `main` бұтағының түбірінен тікелей беріледі: **Settings → Pages → Source →
+`Deploy from a branch`**, Branch `main`, папка `/ (root)`. `main`-ге әр пуштан
+кейін GitHub сайтты өзі қайта құрастырады — бір-екі минут алады.
 
-Жергілікті қарау үшін `index.html` файлын браузерде ашсаңыз жеткілікті.
+**https://240204016-art.github.io/ai-finance-course/**
+
+`.nojekyll` файлы Jekyll өңдеуін өшіреді, сондықтан `index.html` сол күйі беріледі.
+
+`.github/workflows/build-check.yml` жариялауға қатыспайды — ол тек
+`index.html` мен `artifact.html` файлдарының `questions.json`-мен сәйкестігін
+тексереді. Сұрақты өзгертіп, `build.py`-ды жүргізуді ұмытып кетсеңіз, PR-да
+қызыл ✗ болып ескертіледі.
+
+Жергілікті қарау үшін `index.html` файлын браузерде ашсаңыз жеткілікті —
+серверсіз де жұмыс істейді.

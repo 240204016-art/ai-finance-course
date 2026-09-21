@@ -1,0 +1,32 @@
+name: Build check
+
+# GitHub Pages сайтты `main` бұтағының түбірінен тікелей жариялайды
+# (Settings → Pages → Deploy from a branch), сондықтан бұл жерде жариялау қадамы жоқ.
+# Бұл жұмыс тек құрастырылған файлдардың questions.json-мен сәйкестігін тексереді:
+# сұрақты өзгертіп, build.py-ды жүргізуді ұмытып кетсеңіз — ескертеді.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Тестті қайта құрастыру
+        run: python3 build.py
+
+      - name: Құрастырылған файлдар жаңа ма
+        run: |
+          if ! git diff --exit-code --stat -- index.html artifact.html; then
+            echo "::error::index.html / artifact.html ескірген. Жергілікті жерде 'python3 build.py' жүргізіп, нәтижесін коммит етіңіз."
+            exit 1
+          fi
+          echo "Құрастырылған файлдар questions.json-мен сәйкес."
