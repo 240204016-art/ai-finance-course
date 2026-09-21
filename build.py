@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Бір шаблоннан тесттің екі нұсқасын құрастырады.
+"""Тесттердің веб-нұсқасын құрастырады.
 
     python3 build.py
 
-    src/page.html + questions.json
+    src/page.html + tests/*.json
         -> index.html     толық HTML құжат (GitHub Pages үшін)
         -> artifact.html  тек бет мазмұны (Claude артефактісі үшін)
 
-Сұрақты не жауапты өзгерту үшін questions.json файлын,
+Сұрақты не жауапты өзгерту үшін tests/ ішіндегі файлды,
 беттің көрінісі мен логикасын өзгерту үшін src/page.html файлын түзетіп,
 осы скриптті қайта іске қосыңыз.
 """
@@ -15,8 +15,9 @@ import json
 import pathlib
 
 ROOT = pathlib.Path(__file__).parent
-DESCRIPTION = ("Биология пәнінен ҰБТ үлгісіндегі 40 сұрақтан тұратын "
-               "онлайн тест: таймер, сұрақтар картасы және толық талдау.")
+TITLE = "Биология ҰБТ сынағы"
+DESCRIPTION = ("Биология пәнінен ҰБТ үлгісіндегі бес нұсқа: таймер, "
+               "сұрақтар картасы және әр сұрақтың толық талдауы.")
 
 HEAD = """<!doctype html>
 <html lang="kk">
@@ -38,18 +39,54 @@ img{{max-width:100%}}
 """
 
 
+def load_tests():
+    tests = []
+    for path in sorted((ROOT / "tests").glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for field in ("slug", "title", "questions"):
+            if field not in data:
+                raise SystemExit(f"{path.name}: '{field}' өрісі жоқ")
+        data["total"] = sum(q["points"] for q in data["questions"])
+        check(path.name, data)
+        tests.append(data)
+    if not tests:
+        raise SystemExit("tests/ ішінде бірде-бір тест жоқ")
+    return tests
+
+
+def check(name, data):
+    """Дереккөздегі қателерді құрастыру кезінде ұстау."""
+    for q in data["questions"]:
+        ids = {o["id"] for o in q["options"]}
+        where = f"{name} Q{q['n']}"
+        if q["type"] == "match":
+            if len(q.get("items", [])) != 2:
+                raise SystemExit(f"{where}: сәйкестендіруде 2 жұп болуы керек")
+            for it in q["items"]:
+                if it["answer"] not in ids:
+                    raise SystemExit(f"{where}: '{it['text']}' жауабы нұсқалар арасында жоқ")
+        elif q["type"] == "multi":
+            if len(q.get("answer", [])) < 2:
+                raise SystemExit(f"{where}: бірнеше жауапта кемінде 2 нұсқа болуы керек")
+            for a in q["answer"]:
+                if a not in ids:
+                    raise SystemExit(f"{where}: {a} нұсқасы жоқ")
+        else:
+            if q.get("answer") not in ids:
+                raise SystemExit(f"{where}: дұрыс жауап белгіленбеген")
+
+
 def main() -> None:
     template = (ROOT / "src" / "page.html").read_text(encoding="utf-8")
-    data = json.loads((ROOT / "questions.json").read_text(encoding="utf-8"))
-    blob = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    tests = load_tests()
+    payload = {"title": TITLE, "tests": tests}
+    blob = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if "</script" in blob.lower():
-        raise SystemExit("questions.json ішінде </script> кездесті")
+        raise SystemExit("деректер ішінде </script> кездесті")
     page = template.replace("__DATA__", blob)
 
-    # Артефакт нұсқасы: қабықсыз, платформа өзі орайды.
     (ROOT / "artifact.html").write_text(page, encoding="utf-8")
 
-    # Дербес нұсқа: <title>, қаріп сілтемелері мен стильдер <head> ішіне шығады.
     split = page.index('<div class="wrap">')
     (ROOT / "index.html").write_text(
         HEAD.format(description=DESCRIPTION,
@@ -57,8 +94,11 @@ def main() -> None:
                     body_block=page[split:].strip() + "\n"),
         encoding="utf-8")
 
-    total = sum(q["points"] for q in data["questions"])
-    print(f"{len(data['questions'])} сұрақ, {total} балл -> index.html, artifact.html")
+    qn = sum(len(t["questions"]) for t in tests)
+    pts = sum(t["total"] for t in tests)
+    print(f"{len(tests)} тест, {qn} сұрақ, {pts} балл -> index.html, artifact.html")
+    for t in tests:
+        print(f"  {t['title']}: {len(t['questions'])} сұрақ, {t['total']} балл")
 
 
 if __name__ == "__main__":

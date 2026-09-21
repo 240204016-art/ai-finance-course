@@ -74,6 +74,25 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2);color:var(--on-accent)}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .sections{display:flex;flex-direction:column;gap:10px}
+.test-list{display:flex;flex-direction:column;gap:10px}
+.test-card{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:14px 16px;
+  box-shadow:var(--shadow);transition:border-color .12s,transform .12s}
+.test-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.test-card .tc-n{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:10px;
+  background:var(--accent-tint);color:var(--accent);font-family:var(--serif);font-weight:700;font-size:19px}
+.test-card .tc-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.test-card .tc-title{font-family:var(--serif);font-weight:700;font-size:18px;line-height:1.2}
+.test-card .tc-meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.test-card .tc-go{font-size:20px;color:var(--muted);flex:none}
+.test-card:hover .tc-go{color:var(--accent)}
+.chip{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--surface-2);
+  color:var(--ink-2);border:1px solid var(--line);letter-spacing:.01em}
+.chip.done{background:var(--ok-tint);color:var(--ok);border-color:var(--ok-line)}
+.chip.resume{background:var(--flag-tint);color:var(--flag);border-color:var(--flag-line)}
+.qimg{margin:0;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden;background:var(--surface-2)}
+.qimg img{display:block;width:100%;height:auto;max-height:min(70vh,560px);object-fit:contain}
+.tb-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}
 .sec{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface)}
 .sec .n{font-family:var(--serif);color:var(--accent);font-weight:700}
 .sec .d{font-size:13.5px;color:var(--muted)}
@@ -198,20 +217,13 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
       <div class="rule"></div>
       <p class="eyebrow">Ұлттық бірыңғай тестілеу · Бейіндік пән</p>
       <h1>Биология сынағы</h1>
-      <p class="lede">Жасуша мен ұлпадан бастап, есту мүшесі мен тыныс алу жүйесіне дейін — 40 сұрақтан тұратын толық нұсқа. Жауаптарыңыз бірден тексеріліп, әр сұрақтың дұрыс жауабы талданады.</p>
-    </div>
-
-    <div class="facts">
-      <div class="fact"><b class="tnum">40</b><span>сұрақ</span></div>
-      <div class="fact"><b class="tnum">50</b><span>максимал балл</span></div>
-      <div class="fact"><b class="tnum" id="fact-time">60</b><span>минут</span></div>
-      <div class="fact"><b>3</b><span>бөлім</span></div>
+      <p class="lede" id="home-lede"></p>
     </div>
 
     <div class="sections">
       <div class="sec"><span class="n">1–30</span><span class="d">Бір дұрыс жауапты таңдау</span><span class="p">1 балл</span></div>
-      <div class="sec"><span class="n">31–35</span><span class="d">Сәйкестендіру — әр ұғымға бір анықтама</span><span class="p">2 балл</span></div>
-      <div class="sec"><span class="n">36–40</span><span class="d">Бірнеше дұрыс жауап — контекстік сұрақтар</span><span class="p">2 балл</span></div>
+      <div class="sec"><span class="n">31–35</span><span class="d">Сәйкестендіру — әр жұп бөлек бағаланады</span><span class="p">2 балл</span></div>
+      <div class="sec"><span class="n">36–40</span><span class="d">Бірнеше дұрыс жауап — ҰБТ ережесімен</span><span class="p">2 балл</span></div>
     </div>
 
     <div class="panel setup">
@@ -239,12 +251,13 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
           <button type="button" data-val="practice">Жаттығу</button>
         </span>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="btn-start" type="button">Сынақты бастау</button>
-        <button class="btn" id="btn-resume" type="button" hidden>Жалғастыру</button>
-        <button class="btn" id="btn-last" type="button" hidden>Соңғы нәтиже</button>
-      </div>
     </div>
+
+    <div class="start-head" style="gap:6px">
+      <p class="eyebrow">Нұсқаны таңдаңыз</p>
+    </div>
+    <div class="test-list" id="test-list"></div>
+
     <p class="note">Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді. Пернетақтамен де жұмыс істейді: <kbd>1</kbd>–<kbd>6</kbd> нұсқаны таңдайды, <kbd>←</kbd> <kbd>→</kbd> сұрақтарды ауыстырады.</p>
   </section>
 
@@ -273,9 +286,11 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
 (function(){
 "use strict";
 var DATA = JSON.parse(document.getElementById('quiz-data').textContent);
+var TESTS = DATA.tests;
 var LETTERS = ['A','B','C','D','E','F'];
-var KEY_STATE = 'bio-ubt-v1-state';
-var KEY_LAST  = 'bio-ubt-v1-last';
+var T = null;                                  /* ағымдағы тест */
+function keyState(slug){ return 'bio-ubt-v2-state-' + slug; }
+function keyLast(slug){ return 'bio-ubt-v2-last-' + slug; }
 
 var TYPE_LABEL = {
   single:'Бір дұрыс жауап',
@@ -306,7 +321,7 @@ function segment(id, fn){
     fn(b);
   });
 }
-segment('seg-time', function(b){ opts.minutes=+b.dataset.min; $('fact-time').textContent = opts.minutes || '∞'; });
+segment('seg-time', function(b){ opts.minutes=+b.dataset.min; });
 segment('seg-shuffle', function(b){ opts.shuffle = b.dataset.val==='1'; });
 segment('seg-mode', function(b){ opts.mode = b.dataset.val; });
 
@@ -318,11 +333,12 @@ function shuffled(arr){
 }
 
 function buildSession(){
-  var qs = DATA.questions.map(function(q){
+  var qs = T.questions.map(function(q){
     return { src:q, options: opts.shuffle ? shuffled(q.options) : q.options.slice() };
   });
   if(opts.shuffle) qs = shuffled(qs);
   return {
+    slug:T.slug,
     opts:{ minutes:opts.minutes, shuffle:opts.shuffle, mode:opts.mode },
     order: qs.map(function(x){ return { n:x.src.n, ids:x.options.map(function(o){return o.id;}) }; }),
     answers: qs.map(function(x){
@@ -340,7 +356,7 @@ function buildSession(){
 }
 
 function hydrate(state){
-  var byN = {}; DATA.questions.forEach(function(q){ byN[q.n]=q; });
+  var byN = {}; T.questions.forEach(function(q){ byN[q.n]=q; });
   state.qs = state.order.map(function(o){
     var src = byN[o.n];
     var map = {}; src.options.forEach(function(op){ map[op.id]=op; });
@@ -386,6 +402,8 @@ function mountTopbar(){
   topbar.className='topbar';
   topbar.innerHTML =
     '<div class="topbar-in">'+
+      '<button class="icon-btn" id="tb-home" type="button" title="Нұсқаларға оралу">←</button>'+
+      '<span class="tb-name" id="tb-name"></span>'+
       '<span class="count" id="tb-count"></span>'+
       '<span class="bar"><i id="tb-bar"></i></span>'+
       '<span class="timer tnum" id="tb-timer" hidden></span>'+
@@ -393,6 +411,11 @@ function mountTopbar(){
       '<button class="icon-btn" id="tb-finish" type="button">Аяқтау</button>'+
     '</div>';
   document.querySelector('.wrap').insertAdjacentElement('beforebegin', topbar);
+  $('tb-home').addEventListener('click', function(){
+    if(!S || S.done){ home(); return; }
+    askChoice('«'+T.title+'» аяқталмады. Не істейміз?', 'Сақтап шығу', 'Осы жерде қалу',
+      function(){ persist(); home(); }, null);
+  });
   $('tb-map').addEventListener('click', function(){
     var open = !elNavPanel.hidden;
     elNavPanel.hidden = open;
@@ -447,11 +470,17 @@ function renderQ(){
       '<span class="badge'+cls+'">'+esc(badge)+'</span>'+
     '</div>';
 
+  function figures(list){
+    return (list||[]).map(function(u){
+      return '<figure class="qimg"><img src="'+esc(u)+'" alt="Сұраққа берілген сурет" loading="lazy"></figure>';
+    }).join('');
+  }
   if(src.context){
     html += '<details class="ctx" open><summary>'+esc(src.context.title)+'</summary>'+
-            '<div class="ctx-body">'+esc(src.context.body)+'</div></details>';
+            '<div class="ctx-body">'+esc(src.context.body)+figures(src.context.images)+'</div></details>';
   }
   html += '<h2 class="qtext">'+esc(src.q)+'</h2>';
+  html += figures(src.images);
 
   if(src.type==='match'){
     html += '<div class="opts"><p class="eyebrow">Нұсқалар</p>';
@@ -520,6 +549,7 @@ function renderQ(){
     renderNav(); persist();
   });
 
+  $('tb-name').textContent = T.title;
   $('tb-count').innerHTML = (k+1)+' <small>/ '+S.qs.length+'</small>';
   var done = S.qs.filter(function(qq,kk){ return answered(qq,S.answers[kk]); }).length;
   $('tb-bar').style.width = (done/S.qs.length*100)+'%';
@@ -560,12 +590,12 @@ function go(k){
 
 function persist(){
   if(!S||S.done) return;
-  save(KEY_STATE, { opts:S.opts, order:S.order, answers:S.answers, flags:S.flags, revealed:S.revealed, i:S.i, startedAt:S.startedAt, endsAt:S.endsAt });
+  save(keyState(S.slug), { slug:S.slug, opts:S.opts, order:S.order, answers:S.answers, flags:S.flags, revealed:S.revealed, i:S.i, startedAt:S.startedAt, endsAt:S.endsAt });
 }
 
 /* ---------- result ---------- */
 function finish(auto){
-  S.done=true; drop(KEY_STATE);
+  S.done=true; drop(keyState(S.slug));
   var rows = S.qs.map(function(q,k){
     var r=scoreOne(q,S.answers[k]); r.k=k; return r;
   });
@@ -573,7 +603,7 @@ function finish(auto){
   var max = rows.reduce(function(a,r){ return a+r.max; },0);
   var pct = Math.round(got/max*100);
   var secs = Math.round((Date.now()-S.startedAt)/1000);
-  save(KEY_LAST, { got:got, max:max, pct:pct, secs:secs, at:Date.now() });
+  save(keyLast(S.slug), { got:got, max:max, pct:pct, secs:secs, at:Date.now() });
 
   var verdict = pct>=90?'Өте жақсы':pct>=75?'Жақсы':pct>=55?'Қанағаттанарлық':pct>=35?'Әлі пысықтау керек':'Тақырыпты қайта оқу қажет';
   var groups = [
@@ -589,7 +619,7 @@ function finish(auto){
 
   var mm=Math.floor(secs/60), ss=secs%60;
   var html =
-    '<div class="start-head"><div class="rule"></div><p class="eyebrow">Нәтиже'+(auto?' · уақыт бітті':'')+'</p><h1>Сынақ аяқталды</h1></div>'+
+    '<div class="start-head"><div class="rule"></div><p class="eyebrow">'+esc(T.title)+' · нәтиже'+(auto?' · уақыт бітті':'')+'</p><h1>Сынақ аяқталды</h1></div>'+
     '<div class="score">'+
       '<div><div class="big tnum">'+got+'<small> / '+max+'</small></div><p class="meta">жинақталған балл</p></div>'+
       '<div class="ring" style="--p:'+pct+'"><i class="tnum">'+pct+'%</i></div>'+
@@ -604,6 +634,7 @@ function finish(auto){
       '<button class="icon-btn" id="f-bad" type="button">Тек қателер</button>'+
       '<span class="spacer" style="flex:1"></span>'+
       '<button class="icon-btn" id="r-copy" type="button">Нәтижені көшіру</button>'+
+      '<button class="icon-btn" id="r-home" type="button">Басқа нұсқа</button>'+
       '<button class="btn btn-primary" id="r-again" type="button">Қайта тапсыру</button>'+
     '</div>'+
     '<div class="review" id="review">'+ rows.map(function(r){ return reviewCard(r); }).join('') +'</div>';
@@ -622,9 +653,10 @@ function finish(auto){
   }
   $('f-all').addEventListener('click', function(){ onlyBad=false; applyFilter(); });
   $('f-bad').addEventListener('click', function(){ onlyBad=true; applyFilter(); });
-  $('r-again').addEventListener('click', function(){ location.hash=''; reset(); });
+  $('r-again').addEventListener('click', function(){ restart(); });
+  $('r-home').addEventListener('click', function(){ home(); });
   $('r-copy').addEventListener('click', function(){
-    var txt='Биология ҰБТ сынағы\nБалл: '+got+' / '+max+' ('+pct+'%)\nУақыт: '+mm+' мин '+ss+' сек\n'+
+    var txt=DATA.title+' — '+T.title+'\nБалл: '+got+' / '+max+' ('+pct+'%)\nУақыт: '+mm+' мин '+ss+' сек\n'+
       groups.map(function(g){ return g.name+': '+g.got+' / '+g.max; }).join('\n');
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(function(){ toast('Нәтиже көшірілді'); }, function(){ toast('Көшіру мүмкін болмады'); });
@@ -640,7 +672,8 @@ function reviewCard(r){
   var h='<article class="rv '+r.state+'">'+
     '<div class="rv-head"><span class="num">№'+(r.k+1)+'</span><span class="badge'+(src.type==='multi'?' multi':(src.type==='match'?' match':''))+'">'+esc(TYPE_LABEL[src.type])+'</span>'+
     '<span class="pts tnum">'+r.got+' / '+r.max+' балл</span>'+
-    '<h3 class="rv-q">'+esc(src.q)+'</h3></div>';
+    '<h3 class="rv-q">'+esc(src.q)+'</h3></div>'+
+    (src.images||[]).map(function(u){ return '<figure class="qimg"><img src="'+esc(u)+'" alt="Сұраққа берілген сурет" loading="lazy"></figure>'; }).join('');
 
   if(src.type==='match'){
     src.items.forEach(function(it,ii){
@@ -696,6 +729,33 @@ function askConfirm(msg, onYes){
   back.querySelector('[data-yes]').focus();
 }
 
+function askChoice(msg, yesLabel, noLabel, onYes, onNo){
+  if(modalOpen) return;
+  modalOpen=true;
+  var back=document.createElement('div');
+  back.className='modal-back';
+  back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-label="Таңдау">'+
+    '<p class="m-text">'+esc(msg)+'</p>'+
+    '<div class="m-btns">'+
+      '<button type="button" class="btn" data-no>'+esc(noLabel)+'</button>'+
+      '<button type="button" class="btn btn-primary" data-yes>'+esc(yesLabel)+'</button>'+
+    '</div></div>';
+  function close(){ modalOpen=false; back.remove(); document.removeEventListener('keydown', onKey, true); }
+  function onKey(e){
+    if(e.key==='Escape'){ e.stopPropagation(); close(); if(onNo) onNo(); }
+    else if(e.key==='Enter'){ e.stopPropagation(); close(); onYes(); }
+    else e.stopPropagation();
+  }
+  back.addEventListener('click', function(e){
+    if(e.target===back){ close(); if(onNo) onNo(); }
+    else if(e.target.closest('[data-no]')){ close(); if(onNo) onNo(); }
+    else if(e.target.closest('[data-yes]')){ close(); onYes(); }
+  });
+  document.addEventListener('keydown', onKey, true);
+  document.body.appendChild(back);
+  back.querySelector('[data-yes]').focus();
+}
+
 function toast(msg){
   var t=document.createElement('div'); t.className='toast'; t.textContent=msg;
   document.body.appendChild(t);
@@ -714,30 +774,58 @@ function begin(state){
   timerId=setInterval(tick,1000);
   persist();
 }
-function reset(){
+function home(){
   if(timerId) clearInterval(timerId);
-  S=null; drop(KEY_STATE);
+  S=null; T=null;
   elQuiz.hidden=true; elResult.hidden=true; elStart.hidden=false;
   if(topbar) topbar.hidden=true;
-  refreshStartButtons();
+  renderHome();
   window.scrollTo({top:0});
 }
-function refreshStartButtons(){
-  var st=load(KEY_STATE), last=load(KEY_LAST);
-  $('btn-resume').hidden = !st;
-  var lb=$('btn-last');
-  if(last){ lb.hidden=false; lb.textContent='Соңғы нәтиже: '+last.got+' / '+last.max; }
-  else lb.hidden=true;
+function restart(){
+  if(timerId) clearInterval(timerId);
+  var t=T; S=null;
+  drop(keyState(t.slug));
+  T=t; begin(buildSession());
 }
-$('btn-start').addEventListener('click', function(){ begin(buildSession()); });
-$('btn-resume').addEventListener('click', function(){
-  var st=load(KEY_STATE); if(!st){ refreshStartButtons(); return; }
-  st.done=false; begin(st);
-});
-$('btn-last').addEventListener('click', function(){
-  var last=load(KEY_LAST); if(!last) return;
-  toast('Соңғы нәтиже: '+last.got+' / '+last.max+' ('+last.pct+'%)');
-});
+
+function renderHome(){
+  var list=$('test-list');
+  var qn=TESTS.reduce(function(a,t){ return a+t.questions.length; },0);
+  $('home-lede').textContent = TESTS.length+' нұсқа, барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен '+
+    'жеке нәтижесі болады — кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
+  list.innerHTML='';
+  TESTS.forEach(function(t, k){
+    var st=load(keyState(t.slug)), last=load(keyLast(t.slug));
+    var imgs=t.questions.reduce(function(a,q){
+      return a + (q.images?q.images.length:0) + ((q.context&&q.context.images)?q.context.images.length:0);
+    },0);
+    var chips='<span>'+t.questions.length+' сұрақ</span><span>·</span><span>'+t.total+' балл</span>';
+    if(imgs) chips+='<span class="chip">суретті</span>';
+    if(st) chips+='<span class="chip resume">жалғасады</span>';
+    if(last) chips+='<span class="chip done">'+last.got+' / '+last.max+'</span>';
+    var b=document.createElement('button');
+    b.type='button'; b.className='test-card';
+    var num=(t.title.match(/\d+/)||[k+1])[0];
+    b.innerHTML='<span class="tc-n">'+esc(num)+'</span>'+
+      '<span class="tc-main"><span class="tc-title">'+esc(t.title)+'</span>'+
+      '<span class="tc-meta">'+chips+'</span></span>'+
+      '<span class="tc-go" aria-hidden="true">→</span>';
+    b.addEventListener('click', function(){ openTest(k); });
+    list.appendChild(b);
+  });
+}
+
+function openTest(k){
+  T = TESTS[k];
+  var st = load(keyState(T.slug));
+  if(st){
+    askChoice('«'+T.title+'» аяқталмай қалған. Жалғастырасыз ба?',
+      'Жалғастыру', 'Басынан бастау',
+      function(){ st.done=false; begin(st); },
+      function(){ drop(keyState(T.slug)); begin(buildSession()); });
+  } else begin(buildSession());
+}
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', function(e){
@@ -757,14 +845,20 @@ document.addEventListener('keydown', function(e){
 window.addEventListener('beforeunload', persist);
 
 /* ---------- boot ---------- */
-function start(){
-  refreshStartButtons();
-  $('fact-time').textContent = opts.minutes || '∞';
+function start(){ renderHome(); }
+function resume(d){
+  start();
+  if(d && d.s && d.s.slug){
+    var t=TESTS.filter(function(x){ return x.slug===d.s.slug; })[0];
+    if(t){ T=t; begin(d.s); }
+  }
 }
 try{
   if(window.claude && window.claude.hot){
-    window.claude.hot.snapshot(function(){ return S && !S.done ? {s:{opts:S.opts,order:S.order,answers:S.answers,flags:S.flags,revealed:S.revealed,i:S.i,startedAt:S.startedAt,endsAt:S.endsAt}} : {}; });
-    window.claude.hot.ready(function(d){ start(); if(d && d.s) begin(d.s); });
+    window.claude.hot.snapshot(function(){
+      return S && !S.done ? {s:{slug:S.slug,opts:S.opts,order:S.order,answers:S.answers,flags:S.flags,revealed:S.revealed,i:S.i,startedAt:S.startedAt,endsAt:S.endsAt}} : {};
+    });
+    window.claude.hot.ready(resume);
   } else start();
 }catch(e){ start(); }
 })();
