@@ -182,6 +182,10 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
 .rv-line.good .t,.rv-line.wrong .t{color:inherit}
 .rv-empty{font-size:14px;color:var(--muted);font-style:italic}
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.modal-back{position:fixed;inset:0;background:rgba(8,18,16,.58);display:grid;place-items:center;z-index:100;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;max-width:400px;width:100%;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.modal .m-text{font-family:var(--serif);font-size:17px;line-height:1.45}
+.modal .m-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:14px;font-weight:700;z-index:50;box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -391,7 +395,7 @@ function mountTopbar(){
   $('tb-finish').addEventListener('click', function(){
     var left = S.qs.filter(function(q,k){ return !answered(q, S.answers[k]); }).length;
     var msg = left ? left+' сұрақ жауапсыз қалды. Сонда да аяқтайсыз ба?' : 'Сынақты аяқтап, нәтижені көресіз бе?';
-    if(window.confirm(msg)) finish();
+    askConfirm(msg, function(){ finish(); });
   });
 }
 
@@ -657,6 +661,33 @@ function reviewCard(r){
   return h+'</article>';
 }
 
+var modalOpen=false;
+function askConfirm(msg, onYes){
+  if(modalOpen) return;
+  modalOpen=true;
+  var back=document.createElement('div');
+  back.className='modal-back';
+  back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-label="Растау">'+
+    '<p class="m-text">'+esc(msg)+'</p>'+
+    '<div class="m-btns">'+
+      '<button type="button" class="btn" data-no>Болдырмау</button>'+
+      '<button type="button" class="btn btn-primary" data-yes>Иә, аяқтау</button>'+
+    '</div></div>';
+  function close(){ modalOpen=false; back.remove(); document.removeEventListener('keydown', onKey, true); }
+  function onKey(e){
+    if(e.key==='Escape'){ e.stopPropagation(); close(); }
+    else if(e.key==='Enter'){ e.stopPropagation(); close(); onYes(); }
+    else e.stopPropagation();
+  }
+  back.addEventListener('click', function(e){
+    if(e.target===back || e.target.closest('[data-no]')) close();
+    else if(e.target.closest('[data-yes]')){ close(); onYes(); }
+  });
+  document.addEventListener('keydown', onKey, true);
+  document.body.appendChild(back);
+  back.querySelector('[data-yes]').focus();
+}
+
 function toast(msg){
   var t=document.createElement('div'); t.className='toast'; t.textContent=msg;
   document.body.appendChild(t);
@@ -702,7 +733,7 @@ $('btn-last').addEventListener('click', function(){
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', function(e){
-  if(!S || S.done || elQuiz.hidden) return;
+  if(!S || S.done || elQuiz.hidden || modalOpen) return;
   if(e.metaKey||e.ctrlKey||e.altKey) return;
   var tag=(e.target.tagName||'').toLowerCase();
   if(tag==='input'||tag==='textarea') return;
