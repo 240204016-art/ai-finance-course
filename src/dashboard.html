@@ -60,7 +60,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 .gate input{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--surface);
   border:1px solid var(--line-2);border-radius:var(--r-s);padding:10px 12px}
 .gate input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
-.msg{font-size:13.5px;color:var(--bad);font-weight:700}
+.msg{font-size:13.5px;color:var(--bad);font-weight:700;line-height:1.5}
+.msg code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--surface-2);
+  border:1px solid var(--line-2);border-radius:4px;padding:1px 5px;color:var(--ink)}
 .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 16px}
 .filters select,.filters input{font:inherit;font-size:14px;background:var(--surface);color:var(--ink);
   border:1px solid var(--line-2);border-radius:var(--r-s);padding:7px 10px}
@@ -225,24 +227,50 @@ $('b-refresh').addEventListener('click', function(){
   if(k) load(k, false);
 });
 
+function directUrl(key){
+  return CFG.submitUrl + (CFG.submitUrl.indexOf('?')<0?'?':'&') + 'key=' + encodeURIComponent(key);
+}
+
 function load(key, fromGate){
   if(!CFG.submitUrl){ msg('submitUrl бапталмаған — алдымен config.json толтырылуы керек.'); return; }
   msg(null);
   if(fromGate) $('gate-go').textContent='Жүктелуде…';
-  fetch(CFG.submitUrl + (CFG.submitUrl.indexOf('?')<0?'?':'&') + 'key=' + encodeURIComponent(key))
-    .then(function(r){ return r.json(); })
-    .then(function(j){
+  var url = directUrl(key);
+  fetch(url)
+    .then(function(r){
+      return r.text().then(function(t){ return {status:r.status, text:t}; });
+    })
+    .then(function(res){
       $('gate-go').textContent='Ашу';
+      var j;
+      try{ j = JSON.parse(res.text); }
+      catch(err){
+        var hint = /function not found/i.test(res.text)
+          ? 'Apps Script «doGet» функциясын таба алмады — бұл жариялауда ескі код тұр. Deploy → Manage deployments → ✏️ → Version: New version деп қайта жариялаңыз.'
+          : 'Скрипт JSON емес, HTML қайтарды (HTTP ' + res.status + '). Әдетте бұл кодтың ескі нұсқасы жарияланғанын немесе рұқсат берілмегенін білдіреді.';
+        showDiag(hint, url);
+        return;
+      }
       if(!j || !j.ok){ msg(j && j.error ? j.error : 'Деректерді алу мүмкін болмады.'); return; }
       try{ localStorage.setItem(KEY, key); }catch(e){}
       rows = j.rows || [];
       $('gate').hidden=true; $('app').hidden=false;
       fillFilters(); render();
     })
-    .catch(function(){
+    .catch(function(err){
       $('gate-go').textContent='Ашу';
-      msg('Байланыс болмады. Apps Script «Anyone» деңгейінде жарияланғанын тексеріңіз.');
+      showDiag('Браузер сұранысты жібере алмады — желі үзілген немесе Apps Script «Anyone» деңгейінде жарияланбаған. ' +
+               'Мәліметі: ' + (err && err.message ? err.message : 'белгісіз'), url);
     });
+}
+
+function showDiag(text, url){
+  var m=$('gate-msg');
+  m.hidden=false;
+  m.innerHTML = esc(text) +
+    '<br><br><a href="' + esc(url) + '" target="_blank" rel="noopener" style="color:var(--accent)">' +
+    'Скриптті тікелей ашып тексеру →</a><br>' +
+    '<span style="font-weight:400;color:var(--muted)">Сол бетте <code>{"ok":true,...}</code> көрінсе, скрипт дұрыс.</span>';
 }
 
 /* ---------- сүзгілер ---------- */
