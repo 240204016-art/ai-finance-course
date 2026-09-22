@@ -1,4 +1,4 @@
 {
   "submitUrl": "https://script.google.com/macros/s/AKfycbzbO9tTEIfh2k8ePEmLC9E4FTbLJi8G3s5K9Tg3T7dUWx3iasnuNUiHfYah5-KnnIx_/exec",
-  "note": "Google Apps Script веб-қосымшасының мекенжайы. tools/apps-script.gs ішіндегі нұсқаулықты қараңыз. Бос болса, нәтиже жиналмайды — тест бұрынғыдай жұмыс істей береді."
+  "note": "Google Apps Script веб-қосымшасының мекенжайы. tools/apps-script.gs ішіндегі нұсқаулықты қараңыз. Бос болса, нәтиже жиналмайды — тест бұрынғыдай жұмыс істей береді. ЕСКЕРТУ: бұл файл сайтпен бірге жарияланады, сондықтан құпия сөзді (SECRET_KEY) осында ЖАЗБАҢЫЗ — ол дашбордқа кірген кезде сұралады да, браузеріңізде сақталады."
 }
