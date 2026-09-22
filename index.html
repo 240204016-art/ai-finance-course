@@ -112,7 +112,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   font-size:22px;text-align:center}
 .okline{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ok);font-weight:700}
 .okline .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
-@media(min-width:620px){.idrow{grid-template-columns:2fr 1fr}}
+@media(min-width:620px){.idrow{grid-template-columns:1fr 1fr 1fr}}
+.idform label .req{color:var(--bad);font-weight:700}
 .test-card[disabled]{opacity:.5;cursor:not-allowed}
 .test-card[disabled]:hover{border-color:var(--line-2);transform:none}
 .test-card[disabled] .tc-go{color:var(--muted)}
@@ -319,11 +320,15 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
 
       <div class="step" id="st-name" hidden>
         <p class="okline"><i class="dot"></i><span id="name-email"></span> расталды</p>
+        <p class="hint" style="margin-top:-2px">Үшеуі де міндетті — нәтиже осы деректермен жазылады.</p>
         <div class="idrow">
-          <label for="in-name">Аты-жөні
-            <input id="in-name" type="text" autocomplete="name" maxlength="120" placeholder="Айдана Серікқызы">
+          <label for="in-last"><span>Тегі <span class="req">*</span></span>
+            <input id="in-last" type="text" autocomplete="family-name" maxlength="60" placeholder="Серікқызы">
           </label>
-          <label for="in-group">Сынып немесе тобыңыз
+          <label for="in-first"><span>Есімі <span class="req">*</span></span>
+            <input id="in-first" type="text" autocomplete="given-name" maxlength="60" placeholder="Айдана">
+          </label>
+          <label for="in-group"><span>Сыныбы <span class="req">*</span></span>
             <input id="in-group" type="text" autocomplete="off" maxlength="60" placeholder="11Ә">
           </label>
         </div>
@@ -475,7 +480,8 @@ function verifyCode(){
   api({action:'verify', email:pendingEmail, code:code}).then(function(j){
     busy($('b-verify'), false);
     if(!j.ok){ idErr(j.error || 'Код расталмады.'); return; }
-    sess = { email:j.email, token:j.token, name:j.name||'', group:j.group||'',
+    sess = { email:j.email, token:j.token,
+             last:j.last||'', first:j.first||'', group:j.group||'',
              exp: Date.now() + (j.hours||12)*3600000 };
     save(KEY_SESS, sess);
     enterNameStep();
@@ -487,11 +493,22 @@ function verifyCode(){
 
 function enterNameStep(){
   $('name-email').textContent = sess.email;
-  $('in-name').value = sess.name || '';
+  $('in-last').value  = sess.last  || '';
+  $('in-first').value = sess.first || '';
   $('in-group').value = sess.group || '';
   showStep('name');
   renderHome();
-  if(!sess.name) setTimeout(function(){ $('in-name').focus(); }, 30);
+  if(!profileDone()) setTimeout(function(){ $('in-last').focus(); }, 30);
+}
+
+function profileDone(){
+  return !!(sess && String(sess.last||'').trim().length >= 2
+                 && String(sess.first||'').trim().length >= 2
+                 && String(sess.group||'').trim().length >= 1);
+}
+
+function fullName(){
+  return ((sess.last||'') + ' ' + (sess.first||'')).trim();
 }
 
 function signOut(){
@@ -876,7 +893,7 @@ function payload(rows, got, max, pct, secs){
   return {
     v:1,
     email: sess.email, token: sess.token,
-    name: sess.name, group: sess.group,
+    last: sess.last, first: sess.first, name: fullName(), group: sess.group,
     test: T.slug, testTitle: T.title,
     score: got, max: max, pct: pct, seconds: secs,
     mode: S.opts.mode, shuffled: !!S.opts.shuffle,
@@ -1053,13 +1070,13 @@ function renderHome(){
   $('home-lede').textContent = TESTS.length+' нұсқа, барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен '+
     'жеке нәтижесі болады — кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
   $('who-panel').hidden = !COLLECT;
-  var ready = !COLLECT || (signedIn() && sess.name.length >= 2);
+  var ready = !COLLECT || (signedIn() && profileDone());
   var w=$('who-line');
   w.hidden = !COLLECT;
   if(COLLECT){
     w.textContent = ready
-      ? 'Нәтиже ' + sess.name + (sess.group ? ', ' + sess.group : '') + ' (' + sess.email + ') атынан жіберіледі.'
-      : (signedIn() ? 'Нұсқаны ашу үшін аты-жөніңізді жазыңыз.'
+      ? 'Нәтиже ' + fullName() + ', ' + sess.group + ' (' + sess.email + ') атынан жіберіледі.'
+      : (signedIn() ? 'Нұсқаны ашу үшін тегіңізді, есіміңізді және сыныбыңызды жазыңыз.'
                     : 'Нұсқаны ашу үшін email-іңізді растаңыз.');
   }
   list.innerHTML='';
@@ -1092,9 +1109,10 @@ function openTest(k){
     ($('in-code').offsetParent ? $('in-code') : $('in-email')).focus();
     return;
   }
-  if(COLLECT && sess.name.length < 2){
-    idErr('Аты-жөніңізді жазыңыз.');
-    $('in-name').focus();
+  if(COLLECT && !profileDone()){
+    idErr('Тегіңізді, есіміңізді және сыныбыңызды толық жазыңыз.');
+    ($('in-last').value.trim().length < 2 ? $('in-last')
+      : ($('in-first').value.trim().length < 2 ? $('in-first') : $('in-group'))).focus();
     return;
   }
   T = TESTS[k];
@@ -1113,15 +1131,17 @@ function enterTest(){
 
 function whoInput(){
   if(!sess) return;
-  sess.name = $('in-name').value.trim();
+  sess.last  = $('in-last').value.trim();
+  sess.first = $('in-first').value.trim();
   sess.group = $('in-group').value.trim();
   save(KEY_SESS, sess);
-  if(sess.name.length >= 2) idErr(null);
+  if(profileDone()) idErr(null);
   renderHome();
 }
 if(COLLECT){
-  $('in-name').addEventListener('input', whoInput);
-  $('in-group').addEventListener('input', whoInput);
+  ['in-last','in-first','in-group'].forEach(function(id){
+    $(id).addEventListener('input', whoInput);
+  });
 }
 
 /* ---------- keyboard ---------- */
