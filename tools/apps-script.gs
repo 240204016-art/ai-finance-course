@@ -204,6 +204,9 @@ function sendCode_(email) {
     } else {
       hit.sheet.appendRow([email, code, now, until, '', '', '', '', '']);
     }
+    /* кодты мәтін етіп қоямыз — сан болып жазылса, алдындағы нөл жоғалады */
+    hit.sheet.getRange(hit.row || hit.sheet.getLastRow(), 2)
+      .setNumberFormat('@').setValue(code);
 
     MailApp.sendEmail({
       to: email,
@@ -226,7 +229,9 @@ function sendCode_(email) {
 function verifyCode_(email, code) {
   var hit = codeRow_(email);
   if (!hit.row) { return json_({ ok: false, error: 'Алдымен кодты сұраңыз.' }); }
-  if (String(hit.data[1]) !== String(code).trim()) {
+  var stored = String(hit.data[1]).trim();
+  var given  = String(code).trim();
+  if (!stored || stored !== given) {
     return json_({ ok: false, error: 'Код дұрыс емес.' });
   }
   if (!(hit.data[3] instanceof Date) || new Date() > hit.data[3]) {
@@ -309,8 +314,17 @@ function doPost(e) {
 /* ---------- 4. дашборд ---------- */
 
 function doGet(e) {
-  var p = (e && e.parameter) ? e.parameter : {};
+  /* Қате ұсталмаса, Apps Script JSON емес HTML қате беті қайтарады да,
+     бет «сервер күтпеген жауап қайтарды» деп қана айта алады. */
+  try {
+    return route_((e && e.parameter) ? e.parameter : {});
+  } catch (err) {
+    return json_({ ok: false,
+                   error: 'Скрипт қатесі: ' + (err && err.message ? err.message : err) });
+  }
+}
 
+function route_(p) {
   if (p.action === 'sendCode') { return sendCode_(norm_(p.email)); }
   if (p.action === 'verify')   { return verifyCode_(norm_(p.email), p.code); }
   if (p.action === 'session') {
