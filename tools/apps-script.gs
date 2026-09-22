@@ -53,6 +53,7 @@ var HEADERS = [
   'Балл', 'Макс', 'Пайыз', 'Уақыты (сек)', 'Режим', 'Араластыру',
   'Белгілер', 'Жауаптар', 'ID'
 ];
+/* Мерзімдер сан (ms) болып сақталады — себебі ms_() түсіндірмесінде. */
 var CODE_HEADERS = ['Email', 'Код', 'Жіберілген', 'Код жарамды дейін',
                     'Токен', 'Токен жарамды дейін', 'Тегі', 'Есімі', 'Сынып/топ'];
 
@@ -140,6 +141,21 @@ function json_(obj) {
 
 function norm_(email) { return String(email || '').trim().toLowerCase(); }
 
+/**
+ * Уақытты санға айналдырады.
+ *
+ * Уақытты кестеге Date етіп жазсақ, Apps Script оны кестенің уақыт
+ * белдеуімен сақтайды да, кері оқығанда жоба белдеуімен түсіндіреді.
+ * Екеуі әртүрлі болса, мән сағаттарға жылжып, 15 минуттық мерзім
+ * бірден «өтіп» қалады. Сондықтан мерзімдер таза сан (ms) болып
+ * жазылады — белдеуге тәуелсіз. Ескі жазбалардағы Date те оқылады.
+ */
+function ms_(v) {
+  if (v instanceof Date) { return v.getTime(); }
+  var n = Number(v);
+  return isNaN(n) ? 0 : n;
+}
+
 function valid_(email) { return /^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email); }
 
 /** Рұқсат парағы бос болса — бәріне ашық. */
@@ -186,23 +202,23 @@ function sendCode_(email) {
     var hit = codeRow_(email);
     var now = new Date();
 
-    if (hit.row && hit.data[2] instanceof Date &&
-        now - hit.data[2] < RESEND_SEC * 1000) {
-      var wait = Math.ceil((RESEND_SEC * 1000 - (now - hit.data[2])) / 1000);
+    var sentAt = hit.row ? ms_(hit.data[2]) : 0;
+    if (sentAt && now.getTime() - sentAt < RESEND_SEC * 1000) {
+      var wait = Math.ceil((RESEND_SEC * 1000 - (now.getTime() - sentAt)) / 1000);
       return json_({ ok: false, error: 'Жаңа кодты ' + wait + ' секундтан кейін сұраңыз.' });
     }
 
     var code = String(Math.floor(100000 + Math.random() * 900000));
-    var until = new Date(now.getTime() + CODE_TTL_MIN * 60000);
+    var until = now.getTime() + CODE_TTL_MIN * 60000;
     var last  = hit.data ? hit.data[6] : '';
     var first = hit.data ? hit.data[7] : '';
     var group = hit.data ? hit.data[8] : '';
 
     if (hit.row) {
       hit.sheet.getRange(hit.row, 1, 1, CODE_HEADERS.length)
-        .setValues([[email, code, now, until, '', '', last, first, group]]);
+        .setValues([[email, code, now.getTime(), until, '', '', last, first, group]]);
     } else {
-      hit.sheet.appendRow([email, code, now, until, '', '', '', '', '']);
+      hit.sheet.appendRow([email, code, now.getTime(), until, '', '', '', '', '']);
     }
     /* кодты мәтін етіп қоямыз — сан болып жазылса, алдындағы нөл жоғалады */
     hit.sheet.getRange(hit.row || hit.sheet.getLastRow(), 2)
@@ -234,14 +250,15 @@ function verifyCode_(email, code) {
   if (!stored || stored !== given) {
     return json_({ ok: false, error: 'Код дұрыс емес.' });
   }
-  if (!(hit.data[3] instanceof Date) || new Date() > hit.data[3]) {
+  var codeUntil = ms_(hit.data[3]);
+  if (!codeUntil || Date.now() > codeUntil) {
     return json_({ ok: false, error: 'Кодтың мерзімі өтті. Жаңасын сұраңыз.' });
   }
 
   var token = Utilities.getUuid();
-  var until = new Date(Date.now() + TOKEN_TTL_HRS * 3600000);
+  var until = Date.now() + TOKEN_TTL_HRS * 3600000;
   hit.sheet.getRange(hit.row, 2, 1, 5)
-    .setValues([['', hit.data[2], hit.data[3], token, until]]);
+    .setValues([['', ms_(hit.data[2]), codeUntil, token, until]]);
 
   return json_({
     ok: true, token: token, email: email,
@@ -255,7 +272,8 @@ function checkToken_(email, token) {
   if (!token) { return null; }
   var hit = codeRow_(email);
   if (!hit.row || String(hit.data[4]) !== String(token)) { return null; }
-  if (!(hit.data[5] instanceof Date) || new Date() > hit.data[5]) { return null; }
+  var until = ms_(hit.data[5]);
+  if (!until || Date.now() > until) { return null; }
   return hit;
 }
 
