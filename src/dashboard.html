@@ -98,6 +98,44 @@ tbody tr:hover{background:var(--surface-2)}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 .pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-block}
 .empty{padding:34px 18px;text-align:center;color:var(--muted);font-size:14.5px}
+tbody tr{cursor:pointer}
+tbody tr td:first-child{position:relative}
+.rowgo{color:var(--muted);font-weight:700}
+tbody tr:hover .rowgo{color:var(--accent)}
+.back{align-self:flex-start;border:1px solid var(--line-2);background:var(--surface);
+  padding:8px 14px;border-radius:var(--r-s);font-size:14px;font-weight:700}
+.back:hover{border-color:var(--accent);color:var(--accent)}
+.who{display:flex;flex-direction:column;gap:6px}
+.who h2{font-size:clamp(22px,4vw,28px);line-height:1.15}
+.who .sub{font-size:14px;color:var(--muted)}
+.tries{display:flex;gap:8px;flex-wrap:wrap}
+.try{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:6px 13px;
+  font-size:13.5px;font-weight:700;line-height:1.3}
+.try:hover{border-color:var(--accent);color:var(--accent)}
+.try[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.qlist{display:flex;flex-direction:column;gap:8px}
+.qrow{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
+  border:1px solid var(--line);border-left:4px solid var(--line-2);border-radius:var(--r-s);
+  padding:11px 14px;background:var(--surface)}
+.qrow.ok{border-left-color:var(--good)}
+.qrow.part{border-left-color:var(--warn)}
+.qrow.bad{border-left-color:var(--crit)}
+.qrow.skip{border-left-color:var(--line-2);opacity:.75}
+.qrow .qn{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px}
+.qrow .qn b{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.qrow .qn .pts{font-size:12px;font-weight:700;padding:1px 7px;border-radius:99px;
+  background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.qrow.ok .qn .pts{background:var(--ok-tint);color:var(--ok)}
+.qrow.bad .qn .pts{background:var(--bad-tint);color:var(--bad)}
+.qrow .qbody{min-width:0;display:flex;flex-direction:column;gap:6px}
+.qrow .qt{font-family:var(--serif);font-size:15.5px;line-height:1.4}
+.ans{font-size:14px;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}
+.ans .k{font-weight:700;white-space:nowrap;color:var(--muted)}
+.ans .v{color:var(--ink-2);overflow-wrap:anywhere}
+.ans.good .v{color:var(--ok)}
+.ans.wrong .v{color:var(--bad)}
+.ans.right .v{color:var(--ok);font-weight:700}
+.secgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);align-items:center}
 .legend span{display:flex;align-items:center;gap:6px}
 .dot{width:11px;height:11px;border-radius:3px;flex:none}
@@ -183,6 +221,26 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
       </table></div>
     </div>
   </section>
+
+  <section id="detail" hidden style="display:flex;flex-direction:column;gap:20px">
+    <button class="back" id="d-back" type="button">← Тізімге оралу</button>
+    <div class="who" id="d-who"></div>
+    <div class="tries" id="d-tries"></div>
+    <div class="tiles" id="d-tiles"></div>
+    <div class="panel card">
+      <h2>Бөлімдер бойынша</h2>
+      <div class="secgrid" id="d-sections"></div>
+    </div>
+    <div class="panel card">
+      <h2>Сұрақтар бойынша</h2>
+      <p class="sub" id="d-qsub"></p>
+      <div class="toolbar">
+        <button class="btn" id="d-all" type="button" aria-pressed="true">Барлығы</button>
+        <button class="btn" id="d-bad" type="button">Тек қателер</button>
+      </div>
+      <div class="qlist" id="d-qlist"></div>
+    </div>
+  </section>
 </div>
 
 <script id="quiz-data" type="application/json">__DATA__</script>
@@ -255,7 +313,13 @@ function load(key, fromGate){
       try{ localStorage.setItem(KEY, key); }catch(e){}
       rows = j.rows || [];
       $('gate').hidden=true; $('app').hidden=false;
-      fillFilters(); render();
+      /* Көрсету қатесі желі қатесі емес — оны бөлек ұстаймыз, әйтпесе
+         себебі «байланыс жоқ» деп бүркемеленіп қалады. */
+      try{ fillFilters(); render(); }
+      catch(err){
+        msg('Деректер келді, бірақ көрсету кезінде қате шықты: ' +
+            (err && err.message ? err.message : 'белгісіз'));
+      }
     })
     .catch(function(err){
       $('gate-go').textContent='Ашу';
@@ -420,10 +484,12 @@ function renderTable(f){
     if(typeof x==='string') return sortDir*x.localeCompare(y,'kk');
     return sortDir*((x||0)-(y||0));
   });
+  lastSorted = sorted;
   $('tbody').innerHTML = sorted.length ? sorted.map(function(r){
     var col = r.pct>=70?'var(--ok-tint)':(r.pct>=40?'var(--surface-2)':'var(--bad-tint)');
     var ink = r.pct>=70?'var(--ok)':(r.pct>=40?'var(--ink-2)':'var(--bad)');
-    return '<tr><td class="tnum">'+esc(fmtDate(r.at))+'</td>'+
+    return '<tr data-id="'+esc(r.id||'')+'" tabindex="0">'+
+      '<td class="tnum">'+esc(fmtDate(r.at))+' <span class="rowgo">›</span></td>'+
       '<td>'+esc(r.name)+'</td><td>'+esc(r.group||'—')+'</td>'+
       '<td>'+esc(r.testTitle||r.test)+'</td>'+
       '<td class="num">'+r.score+' / '+r.max+'</td>'+
@@ -432,6 +498,15 @@ function renderTable(f){
   }).join('') : '<tr><td colspan="7"><p class="empty">Сүзгіге сәйкес жазба жоқ.</p></td></tr>';
 }
 
+$('tbody').addEventListener('click', function(e){
+  var tr=e.target.closest('tr[data-id]'); if(tr) openStudent(tr.dataset.id);
+});
+$('tbody').addEventListener('keydown', function(e){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  var tr=e.target.closest('tr[data-id]');
+  if(tr){ e.preventDefault(); openStudent(tr.dataset.id); }
+});
+
 Array.prototype.forEach.call(document.querySelectorAll('#tbl th'), function(th){
   th.addEventListener('click', function(){
     var k=th.dataset.k;
@@ -439,6 +514,149 @@ Array.prototype.forEach.call(document.querySelectorAll('#tbl th'), function(th){
     renderTable(filtered());
   });
 });
+
+/* ---------- оқушының жеке беті ---------- */
+var lastSorted = [];
+var dRow = null, dOnlyBad = false;
+
+function testOf(r){
+  var byS = TESTS.filter(function(t){ return t.slug===r.test; })[0];
+  return byS || TESTS.filter(function(t){ return t.title===r.testTitle; })[0] || null;
+}
+
+function optText(q, id){
+  var o = q.options.filter(function(x){ return x.id===id; })[0];
+  return o ? id+'. '+o.text : id;
+}
+
+/** Оқушының таңдағанын оқылатын мәтінге айналдырады. */
+function pickText(q, pick){
+  if(!pick || pick==='-') return null;
+  if(q.type==='match'){
+    return q.items.map(function(it, i){
+      var id = pick[i];
+      return it.text + ' → ' + (id && id!=='-' ? optText(q, id) : 'таңдалмаған');
+    }).join('; ');
+  }
+  return pick.split('').map(function(id){ return optText(q, id); }).join(', ');
+}
+
+function correctText(q){
+  if(q.type==='match'){
+    return q.items.map(function(it){ return it.text+' → '+optText(q, it.answer); }).join('; ');
+  }
+  if(q.type==='multi'){
+    return q.answer.map(function(id){ return optText(q, id); }).join(', ');
+  }
+  return optText(q, q.answer);
+}
+
+var MARKNAME = {'1':'ok', 'h':'part', '0':'bad', '-':'skip'};
+
+function openStudent(id){
+  var row = rows.filter(function(r){ return r.id===id; })[0];
+  if(!row) return;
+  dRow = row; dOnlyBad = false;
+  $('app').hidden = true; $('detail').hidden = false;
+  renderDetail();
+  window.scrollTo({top:0});
+}
+
+$('d-back').addEventListener('click', function(){
+  $('detail').hidden = true; $('app').hidden = false;
+  window.scrollTo({top:0});
+});
+$('d-all').addEventListener('click', function(){ dOnlyBad=false; renderDetailQuestions(); });
+$('d-bad').addEventListener('click', function(){ dOnlyBad=true; renderDetailQuestions(); });
+
+function renderDetail(){
+  var r = dRow;
+  $('d-who').innerHTML = '<h2>'+esc(r.name)+'</h2>'+
+    '<p class="sub">'+esc(r.group||'сынып көрсетілмеген')+' · '+esc(r.testTitle||r.test)+
+    ' · '+esc(fmtDate(r.at))+'</p>';
+
+  /* осы оқушының барлық тапсыруы */
+  var mine = rows.filter(function(x){ return x.name===r.name && x.group===r.group; })
+                 .sort(function(a,b){ return new Date(b.at)-new Date(a.at); });
+  $('d-tries').innerHTML = mine.length>1 ? mine.map(function(x){
+    return '<button type="button" class="try" data-id="'+esc(x.id)+'" aria-pressed="'+
+      (x.id===r.id?'true':'false')+'">'+esc(x.testTitle||x.test)+' · '+x.score+'/'+x.max+
+      ' · '+esc(fmtDate(x.at).slice(0,10))+'</button>';
+  }).join('') : '';
+
+  var marks = r.marks || '';
+  var cnt = {ok:0, part:0, bad:0, skip:0};
+  for(var i=0;i<marks.length;i++){ cnt[MARKNAME[marks[i]] || 'skip']++; }
+
+  $('d-tiles').innerHTML =
+    tile(r.score+' / '+r.max, 'балл') +
+    tile(r.pct+'%', 'нәтиже') +
+    tile(cnt.ok, 'толық дұрыс') +
+    tile(cnt.part, 'жартылай') +
+    tile(cnt.bad + cnt.skip, 'қате не жауапсыз') +
+    tile(mmss(r.seconds), 'жұмсаған уақыты');
+
+  /* бөлімдер */
+  var test = testOf(r);
+  var groups = [['single','Бір дұрыс жауап'], ['match','Сәйкестендіру'], ['multi','Бірнеше дұрыс жауап']];
+  $('d-sections').innerHTML = test ? groups.map(function(g){
+    var got=0, max=0, n=0;
+    test.questions.forEach(function(q, i){
+      if(q.type!==g[0]) return;
+      max += q.points; n++;
+      var m = marks[i];
+      if(m==='1') got += q.points;
+      else if(m==='h') got += 1;
+    });
+    return '<div class="tile"><b class="tnum">'+got+' / '+max+'</b><span>'+esc(g[1])+
+      '</span><span class="sub">'+n+' сұрақ</span></div>';
+  }).join('') : '<p class="empty">Нұсқа табылмады.</p>';
+
+  renderDetailQuestions();
+}
+
+$('d-tries').addEventListener('click', function(e){
+  var b=e.target.closest('.try'); if(b) openStudent(b.dataset.id);
+});
+
+function renderDetailQuestions(){
+  var r = dRow, test = testOf(r);
+  var list = $('d-qlist'), sub = $('d-qsub');
+  $('d-all').setAttribute('aria-pressed', dOnlyBad?'false':'true');
+  $('d-bad').setAttribute('aria-pressed', dOnlyBad?'true':'false');
+  if(!test){
+    sub.textContent = 'Бұл нұсқаның сұрақтары табылмады.';
+    list.innerHTML = ''; return;
+  }
+  var marks = r.marks || '';
+  var picks = (r.picks || '').split('|');
+  sub.textContent = dOnlyBad
+    ? 'Тек толық балл алынбаған сұрақтар.'
+    : 'Әр сұрақтың нәтижесі, оқушының жауабы және дұрыс жауап.';
+
+  var html = test.questions.map(function(q, i){
+    var m = marks[i] || '-';
+    var st = MARKNAME[m] || 'skip';
+    if(dOnlyBad && st==='ok') return '';
+    var got = m==='1' ? q.points : (m==='h' ? 1 : 0);
+    var mine = pickText(q, picks[i]);
+    var rows_ = '';
+    if(mine===null){
+      rows_ += '<p class="ans"><span class="k">Жауабы:</span><span class="v" style="font-style:italic">жауап берілмеді</span></p>';
+    } else {
+      rows_ += '<p class="ans '+(st==='ok'?'good':(st==='bad'?'wrong':''))+'">'+
+        '<span class="k">Жауабы:</span><span class="v">'+esc(mine)+'</span></p>';
+    }
+    if(st!=='ok'){
+      rows_ += '<p class="ans right"><span class="k">Дұрысы:</span><span class="v">'+
+        esc(correctText(q))+'</span></p>';
+    }
+    return '<div class="qrow '+st+'">'+
+      '<span class="qn"><b>№'+(i+1)+'</b><span class="pts tnum">'+got+'/'+q.points+'</span></span>'+
+      '<span class="qbody"><span class="qt">'+esc(q.q)+'</span>'+rows_+'</span></div>';
+  }).join('');
+  list.innerHTML = html || '<p class="empty">Бұл нұсқада қате жоқ — барлығы дұрыс.</p>';
+}
 
 /* ---------- CSV ---------- */
 $('b-csv').addEventListener('click', function(){
