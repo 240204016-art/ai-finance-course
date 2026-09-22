@@ -168,7 +168,7 @@ tbody tr:hover .rowgo{color:var(--accent)}
     <div class="panel filters">
       <select id="f-test"><option value="">Барлық нұсқа</option></select>
       <select id="f-group"><option value="">Барлық сынып</option></select>
-      <input class="grow" id="f-name" type="search" placeholder="Аты-жөні бойынша іздеу">
+      <input class="grow" id="f-name" type="search" placeholder="Аты-жөні не email бойынша іздеу">
       <span class="spacer" style="flex:1"></span>
       <button class="btn" id="b-refresh" type="button">Жаңарту</button>
       <button class="btn" id="b-csv" type="button">CSV жүктеу</button>
@@ -213,9 +213,9 @@ tbody tr:hover .rowgo{color:var(--accent)}
       <p class="sub" id="t-sub"></p>
       <div class="tablewrap"><table id="tbl">
         <thead><tr>
-          <th data-k="at">Уақыты</th><th data-k="name">Аты-жөні</th><th data-k="group">Сынып</th>
-          <th data-k="testTitle">Нұсқа</th><th data-k="score">Балл</th><th data-k="pct">%</th>
-          <th data-k="seconds">Уақыт</th>
+          <th data-k="at">Уақыты</th><th data-k="name">Аты-жөні</th><th data-k="email">Email</th>
+          <th data-k="group">Сынып</th><th data-k="testTitle">Нұсқа</th><th data-k="attempt">Әрекет</th>
+          <th data-k="score">Балл</th><th data-k="pct">%</th><th data-k="seconds">Уақыт</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table></div>
@@ -364,7 +364,7 @@ function filtered(){
   return rows.filter(function(r){
     if(t && r.testTitle!==t) return false;
     if(g && r.group!==g) return false;
-    if(q && String(r.name).toLowerCase().indexOf(q)<0) return false;
+    if(q && (String(r.name)+' '+String(r.email||'')).toLowerCase().indexOf(q)<0) return false;
     return true;
   });
 }
@@ -387,7 +387,7 @@ function render(){
 
   /* KPI */
   var people = {};
-  f.forEach(function(r){ people[r.name+'|'+r.group]=1; });
+  f.forEach(function(r){ people[r.email || (r.name+'|'+r.group)]=1; });
   var avg = f.length ? Math.round(f.reduce(function(a,r){ return a+r.pct; },0)/f.length) : 0;
   var avgT = f.length ? Math.round(f.reduce(function(a,r){ return a+r.seconds; },0)/f.length) : 0;
   var best = f.length ? f.reduce(function(a,r){ return r.pct>a.pct?r:a; }) : null;
@@ -490,12 +490,17 @@ function renderTable(f){
     var ink = r.pct>=70?'var(--ok)':(r.pct>=40?'var(--ink-2)':'var(--bad)');
     return '<tr data-id="'+esc(r.id||'')+'" tabindex="0">'+
       '<td class="tnum">'+esc(fmtDate(r.at))+' <span class="rowgo">›</span></td>'+
-      '<td>'+esc(r.name)+'</td><td>'+esc(r.group||'—')+'</td>'+
+      '<td>'+esc(r.name)+'</td>'+
+      '<td style="color:var(--muted)">'+esc(r.email||'—')+'</td>'+
+      '<td>'+esc(r.group||'—')+'</td>'+
       '<td>'+esc(r.testTitle||r.test)+'</td>'+
+      '<td class="num">'+((r.attempt||1)>1
+        ? '<span class="pill" style="background:var(--surface-3);color:var(--warn)">'+r.attempt+'-рет</span>'
+        : '<span style="color:var(--muted)">1</span>')+'</td>'+
       '<td class="num">'+r.score+' / '+r.max+'</td>'+
       '<td class="num"><span class="pill" style="background:'+col+';color:'+ink+'">'+r.pct+'%</span></td>'+
       '<td class="num">'+esc(mmss(r.seconds))+'</td></tr>';
-  }).join('') : '<tr><td colspan="7"><p class="empty">Сүзгіге сәйкес жазба жоқ.</p></td></tr>';
+  }).join('') : '<tr><td colspan="9"><p class="empty">Сүзгіге сәйкес жазба жоқ.</p></td></tr>';
 }
 
 $('tbody').addEventListener('click', function(e){
@@ -572,15 +577,19 @@ $('d-bad').addEventListener('click', function(){ dOnlyBad=true; renderDetailQues
 function renderDetail(){
   var r = dRow;
   $('d-who').innerHTML = '<h2>'+esc(r.name)+'</h2>'+
-    '<p class="sub">'+esc(r.group||'сынып көрсетілмеген')+' · '+esc(r.testTitle||r.test)+
+    '<p class="sub">'+esc(r.email||'email жоқ')+' · '+esc(r.group||'сынып көрсетілмеген')+
+    ' · '+esc(r.testTitle||r.test)+
+    ((r.attempt||1)>1 ? ' · '+r.attempt+'-әрекет' : '')+
     ' · '+esc(fmtDate(r.at))+'</p>';
 
-  /* осы оқушының барлық тапсыруы */
-  var mine = rows.filter(function(x){ return x.name===r.name && x.group===r.group; })
-                 .sort(function(a,b){ return new Date(b.at)-new Date(a.at); });
+  /* осы оқушының барлық тапсыруы — email бойынша, ол жоқ болса аты бойынша */
+  var mine = rows.filter(function(x){
+    return r.email ? x.email===r.email : (x.name===r.name && x.group===r.group);
+  }).sort(function(a,b){ return new Date(b.at)-new Date(a.at); });
   $('d-tries').innerHTML = mine.length>1 ? mine.map(function(x){
     return '<button type="button" class="try" data-id="'+esc(x.id)+'" aria-pressed="'+
-      (x.id===r.id?'true':'false')+'">'+esc(x.testTitle||x.test)+' · '+x.score+'/'+x.max+
+      (x.id===r.id?'true':'false')+'">'+esc(x.testTitle||x.test)+
+      ((x.attempt||1)>1 ? ' ('+x.attempt+'-рет)' : '')+' · '+x.score+'/'+x.max+
       ' · '+esc(fmtDate(x.at).slice(0,10))+'</button>';
   }).join('') : '';
 
@@ -662,8 +671,8 @@ function renderDetailQuestions(){
 $('b-csv').addEventListener('click', function(){
   var f=filtered();
   if(!f.length) return;
-  var cols=['at','name','group','testTitle','score','max','pct','seconds','mode','marks','picks'];
-  var head=['Уақыты','Аты-жөні','Сынып','Нұсқа','Балл','Макс','Пайыз','Секунд','Режим','Белгілер','Жауаптар'];
+  var cols=['at','name','email','group','testTitle','attempt','score','max','pct','seconds','mode','marks','picks'];
+  var head=['Уақыты','Аты-жөні','Email','Сынып','Нұсқа','Әрекет','Балл','Макс','Пайыз','Секунд','Режим','Белгілер','Жауаптар'];
   var q=function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; };
   var csv=[head.map(q).join(',')].concat(f.map(function(r){
     return cols.map(function(c){ return q(r[c]); }).join(',');
