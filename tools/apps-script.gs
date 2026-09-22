@@ -198,6 +198,7 @@ function sendCode_(email) {
   try { lock.waitLock(10000); } catch (e) {
     return json_({ ok: false, error: 'Сервер бос емес, бірер секундтан кейін қайталаңыз.' });
   }
+  var code, until;
   try {
     var hit = codeRow_(email);
     var now = new Date();
@@ -208,8 +209,8 @@ function sendCode_(email) {
       return json_({ ok: false, error: 'Жаңа кодты ' + wait + ' секундтан кейін сұраңыз.' });
     }
 
-    var code = String(Math.floor(100000 + Math.random() * 900000));
-    var until = now.getTime() + CODE_TTL_MIN * 60000;
+    code = String(Math.floor(100000 + Math.random() * 900000));
+    until = now.getTime() + CODE_TTL_MIN * 60000;
     var last  = hit.data ? hit.data[6] : '';
     var first = hit.data ? hit.data[7] : '';
     var group = hit.data ? hit.data[8] : '';
@@ -224,20 +225,24 @@ function sendCode_(email) {
     hit.sheet.getRange(hit.row || hit.sheet.getLastRow(), 2)
       .setNumberFormat('@').setValue(code);
 
-    MailApp.sendEmail({
-      to: email,
-      subject: 'Биология тесті — растау коды: ' + code,
-      body: 'Сәлеметсіз бе!\n\n' +
-            'Тестке кіру коды: ' + code + '\n\n' +
-            'Код ' + CODE_TTL_MIN + ' минут жарамды. Бұл кодты ешкімге бермеңіз — ' +
-            'нәтиже сіздің атыңызбен жазылады.\n\n' +
-            'Егер тестке кірмек болмасаңыз, бұл хатты елемеңіз.'
-    });
-
-    return json_({ ok: true, sent: true, ttlMin: CODE_TTL_MIN });
   } finally {
+    /* Хат жіберу бірнеше секунд алады. Құлыпты сонша ұстасақ, сыныптағы
+       оқушылар кезекке тұрып қалады — сондықтан алдымен босатамыз. */
     lock.releaseLock();
   }
+
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Биология тесті — растау коды: ' + code,
+    body: 'Сәлеметсіз бе!\n\n' +
+          'Тестке кіру коды: ' + code + '\n\n' +
+          'Код ' + CODE_TTL_MIN + ' минут жарамды. Тек ЕҢ СОҢҒЫ хаттағы код\n' +
+          'жарайды — жаңасын сұрасаңыз, бұрынғысы бірден жарамсыз болады.\n\n' +
+          'Бұл кодты ешкімге бермеңіз: нәтиже сіздің атыңызбен жазылады.\n\n' +
+          'Егер тестке кірмек болмасаңыз, бұл хатты елемеңіз.'
+  });
+
+  return json_({ ok: true, sent: true, ttlMin: CODE_TTL_MIN });
 }
 
 /* ---------- 2. кодты растау ---------- */
@@ -245,10 +250,17 @@ function sendCode_(email) {
 function verifyCode_(email, code) {
   var hit = codeRow_(email);
   if (!hit.row) { return json_({ ok: false, error: 'Алдымен кодты сұраңыз.' }); }
-  var stored = String(hit.data[1]).trim();
-  var given  = String(code).trim();
-  if (!stored || stored !== given) {
-    return json_({ ok: false, error: 'Код дұрыс емес.' });
+  /* Кестеде код кейде сан, кейде мәтін болып сақталуы мүмкін, сондықтан
+     тек цифрлар бойынша салыстырамыз. */
+  var stored = String(hit.data[1]).replace(/\D/g, '');
+  var given  = String(code).replace(/\D/g, '');
+  if (!stored) {
+    return json_({ ok: false, error: 'Бұл код қолданылып қойған. Жаңасын сұраңыз.' });
+  }
+  if (stored !== given) {
+    return json_({ ok: false,
+      error: 'Код дұрыс емес. Ең соңғы келген хаттағы кодты енгізіңіз — ' +
+             'жаңасын сұрасаңыз, бұрынғысы жарамсыз болады.' });
   }
   var codeUntil = ms_(hit.data[3]);
   if (!codeUntil || Date.now() > codeUntil) {
