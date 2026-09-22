@@ -136,6 +136,55 @@ tbody tr:hover .rowgo{color:var(--accent)}
 .ans.wrong .v{color:var(--bad)}
 .ans.right .v{color:var(--ok);font-weight:700}
 .secgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+
+/* --- жылу картасы --- */
+.heatwrap{overflow-x:auto}
+.heat{border-collapse:separate;border-spacing:2px;font-size:13px;width:auto}
+.heat td .cell{width:100%}
+.heat th{background:transparent;position:static;text-transform:none;letter-spacing:0;
+  font-size:12.5px;color:var(--muted);font-weight:700;cursor:default;padding:4px 8px;border:0}
+.heat th.rowh{text-align:right;white-space:nowrap}
+.heat td{padding:0;border:0}
+.heat .cell{min-width:78px;max-width:120px;height:42px;border-radius:6px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;font-variant-numeric:tabular-nums}
+.heat .cell b{font-size:13.5px;font-weight:700}
+.heat .cell i{font-size:10.5px;font-style:normal;opacity:.75}
+.heat .cell.none{background:var(--surface-2);color:var(--muted)}
+.scale{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.scale .ramp{display:flex;gap:2px}
+.scale .ramp i{width:20px;height:11px;border-radius:2px;display:block}
+
+/* --- жауап таралымы --- */
+.qpick{font-size:13px;color:var(--muted)}
+.dist{display:flex;flex-direction:column;gap:7px}
+.dline{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:13.5px}
+.dline .k{width:22px;height:22px;flex:none;display:grid;place-items:center;border-radius:50%;
+  font-size:12px;font-weight:700;background:var(--surface-2);color:var(--ink-2)}
+.dline.right .k{background:var(--good);color:#fff}
+.dline .txt{min-width:0;display:flex;flex-direction:column;gap:3px}
+.dline .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.dline .bar{height:12px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.dline .bar i{display:block;height:100%;border-radius:3px;background:var(--bar);min-width:2px}
+.dline.right .bar i{background:var(--good)}
+.dline.top-wrong .bar i{background:var(--crit)}
+.dline .n{font-weight:700;white-space:nowrap;color:var(--ink-2)}
+.tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px}
+.tag.ok{background:var(--ok-tint);color:var(--ok)}
+.tag.bad{background:var(--bad-tint);color:var(--bad)}
+.qcell{cursor:pointer}
+.qcell[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+
+/* --- уақыт графигі --- */
+.twoup{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:760px){.twoup{grid-template-columns:1fr 1fr}}
+.plot{width:100%;height:auto;display:block;overflow:visible}
+.plot .grid{stroke:var(--line);stroke-width:1}
+.plot .axis{stroke:var(--line-2);stroke-width:1}
+.plot .lbl{fill:var(--muted);font-size:10px;font-family:var(--sans)}
+.plot .ln{fill:none;stroke:var(--bar);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.plot .dot{fill:var(--bar);stroke:var(--surface);stroke-width:2}
+.plot .bar{fill:var(--bar)}
+.plot .val{fill:var(--ink-2);font-size:10px;font-weight:700;font-family:var(--sans);text-anchor:middle}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);align-items:center}
 .legend span{display:flex;align-items:center;gap:6px}
 .dot{width:11px;height:11px;border-radius:3px;flex:none}
@@ -190,6 +239,33 @@ tbody tr:hover .rowgo{color:var(--accent)}
     </div>
 
     <div class="panel card">
+      <h2>Бөлімдер бойынша орташа</h2>
+      <p class="sub">Тест құрылымының қай бөлігі ақсап тұрғаны.</p>
+      <div class="chart" id="ch-sections"></div>
+    </div>
+
+    <div class="panel card">
+      <h2>Сынып × нұсқа</h2>
+      <p class="sub">Әр шаршыда орташа пайыз және тапсыру саны. Қай сынып қай нұсқадан сүрінгені көрінеді.</p>
+      <div class="heatwrap"><table class="heat" id="ch-heat"></table></div>
+      <div class="scale">
+        <span>төмен</span>
+        <span class="ramp" id="heat-ramp"></span>
+        <span>жоғары</span>
+        <span>· бос шаршы — ол нұсқаны әлі ешкім тапсырмаған</span>
+      </div>
+    </div>
+
+    <div class="panel card">
+      <h2>Уақыт бойынша динамика</h2>
+      <p class="sub">Күн сайынғы тапсыру саны мен орташа нәтиже бөлек көрсетілген — екеуінің өлшемі әртүрлі.</p>
+      <div class="twoup">
+        <div><p class="eyebrow">Тапсыру саны</p><div id="ch-daycount"></div></div>
+        <div><p class="eyebrow">Орташа нәтиже, %</p><div id="ch-daypct"></div></div>
+      </div>
+    </div>
+
+    <div class="panel card">
       <h2>Балл таралымы</h2>
       <p class="sub">Қанша тапсыру қай пайыз аралығына түскені.</p>
       <div class="chart" id="ch-dist"></div>
@@ -205,6 +281,7 @@ tbody tr:hover .rowgo{color:var(--accent)}
         <span>· әр шаршыда дұрыс жауап пайызы жазылған</span>
       </div>
       <div class="qgrid" id="ch-q"></div>
+      <div id="q-dist"></div>
       <div id="q-hard"></div>
     </div>
 
@@ -356,7 +433,15 @@ function fillFilters(){
   fill(tsel, tests, 'Барлық нұсқа');
   fill(gsel, groups, 'Барлық сынып');
 }
-['f-test','f-group'].forEach(function(id){ $(id).addEventListener('change', render); });
+$('f-test').addEventListener('change', function(){ pickedQ = null; render(); });
+$('f-group').addEventListener('change', render);
+$('ch-q').addEventListener('click', function(e){
+  var b = e.target.closest('.qcell'); if(!b) return;
+  var i = Number(b.dataset.i);
+  pickedQ = (pickedQ === i) ? null : i;
+  renderQuestions(filtered());
+  renderDist(filtered());
+});
 $('f-name').addEventListener('input', render);
 
 function filtered(){
@@ -427,7 +512,13 @@ function render(){
   var dmax=Math.max.apply(null, dist.map(function(d){ return d.value; }).concat([1]));
   bars($('ch-dist'), dist, dmax, function(i){ return i.value+' оқушы'; });
 
+  renderSections(f);
+  renderHeat(f);
+  var d = daily(f);
+  dayBars($('ch-daycount'), d);
+  dayLine($('ch-daypct'), d);
   renderQuestions(f);
+  renderDist(f);
   renderTable(f);
 }
 
@@ -446,7 +537,8 @@ function renderQuestions(f){
   if(!sel.length){ sub.textContent='Бұл нұсқа бойынша дерек жоқ.'; grid.innerHTML=''; hard.innerHTML=''; return; }
   var test = TESTS.filter(function(x){ return x.title===t; })[0];
   var qn = test ? test.questions.length : (sel[0].marks||'').length;
-  sub.textContent = t+' · '+sel.length+' тапсыру бойынша әр сұраққа дұрыс жауап берген оқушы үлесі.';
+  sub.textContent = t+' · '+sel.length+' тапсыру бойынша әр сұраққа дұрыс жауап берген оқушы үлесі. '+
+    'Шаршыны бассаңыз, сол сұрақтың жауап таралымы шығады.';
 
   var stat=[];
   for(var i=0;i<qn;i++){
@@ -460,10 +552,11 @@ function renderQuestions(f){
   }
   grid.innerHTML = stat.map(function(s){
     var col = s.p>=70?'var(--good)':(s.p>=40?'var(--warn)':'var(--crit)');
-    return '<div class="qcell" title="'+esc(s.q?s.q.q:('Сұрақ '+s.i))+'">'+
+    return '<button type="button" class="qcell" data-i="'+(s.i-1)+'" aria-pressed="'+
+      (pickedQ===s.i-1?'true':'false')+'" title="'+esc(s.q?s.q.q:('Сұрақ '+s.i))+'">'+
       '<span class="swatch" style="background:'+col+'"></span>'+
       '<span class="n tnum">№'+s.i+'</span>'+
-      '<span class="p tnum">'+s.p+'%</span></div>';
+      '<span class="p tnum">'+s.p+'%</span></button>';
   }).join('');
 
   var worst = stat.slice().sort(function(a,b){ return a.p-b.p; }).slice(0,5);
@@ -475,6 +568,218 @@ function renderQuestions(f){
         (s.p>=70?'var(--good)':(s.p>=40?'var(--warn)':'var(--crit)'))+'"></i></span>'+
         '<span class="val tnum">'+s.p+'%</span></div>';
     }).join('') +'</div>';
+}
+
+
+/* ---------- бөлімдер бойынша орташа ---------- */
+var SECTIONS = [['single','Бір дұрыс жауап'], ['match','Сәйкестендіру'], ['multi','Бірнеше дұрыс жауап']];
+
+function renderSections(f){
+  var acc = {};
+  SECTIONS.forEach(function(g){ acc[g[0]] = {got:0, max:0}; });
+  f.forEach(function(r){
+    var t = testOf(r); if(!t) return;
+    t.questions.forEach(function(q, i){
+      var a = acc[q.type]; if(!a) return;
+      a.max += q.points;
+      var m = (r.marks||'')[i];
+      if(m === '1') a.got += q.points;
+      else if(m === 'h') a.got += 1;
+    });
+  });
+  var items = SECTIONS.filter(function(g){ return acc[g[0]].max > 0; }).map(function(g){
+    var a = acc[g[0]];
+    return {label:g[1], value:pct(a.got, a.max), got:a.got, max:a.max};
+  });
+  bars($('ch-sections'), items, 100, function(i){ return i.value + '% · ' + i.got + ' / ' + i.max; });
+}
+
+/* ---------- сынып × нұсқа жылу картасы ---------- */
+var RAMP = ['#e0edf1','#bfd9e1','#93bfcc','#5f9fb2','#2f7d94','#0f4c5c'];
+
+function heatStep(v){
+  return Math.min(RAMP.length - 1, Math.max(0, Math.floor(v / 100 * RAMP.length)));
+}
+function heatColor(v){ return RAMP[heatStep(v)]; }
+/* Ақ мәтін тек екі ең қою қадамда оқылады (4,7:1 және 9:1);
+   ортаңғы реңктерде қою сия қолданылады. */
+function heatInk(v){ return heatStep(v) >= 4 ? '#ffffff' : '#13201e'; }
+
+function renderHeat(f){
+  var el = $('ch-heat');
+  var groups = [], tests = [], cell = {};
+  f.forEach(function(r){
+    var g = r.group || 'көрсетілмеген';
+    var t = r.testTitle || r.test;
+    if(groups.indexOf(g) < 0) groups.push(g);
+    if(tests.indexOf(t) < 0) tests.push(t);
+    var k = g + '|' + t;
+    (cell[k] = cell[k] || []).push(r.pct);
+  });
+  groups.sort(); tests.sort();
+  if(!groups.length){ el.innerHTML = '<tr><td><p class="empty">Дерек жоқ.</p></td></tr>'; return; }
+
+  var html = '<tr><th></th>' + tests.map(function(t){ return '<th>' + esc(t) + '</th>'; }).join('') + '</tr>';
+  groups.forEach(function(g){
+    html += '<tr><th class="rowh">' + esc(g) + '</th>';
+    tests.forEach(function(t){
+      var v = cell[g + '|' + t];
+      if(!v){ html += '<td><div class="cell none" title="тапсыру жоқ">—</div></td>'; return; }
+      var avg = Math.round(v.reduce(function(a,b){ return a + b; }, 0) / v.length);
+      html += '<td><div class="cell" style="background:' + heatColor(avg) + ';color:' + heatInk(avg) + '" ' +
+              'title="' + esc(g) + ' · ' + esc(t) + ': орташа ' + avg + '%, ' + v.length + ' тапсыру">' +
+              '<b>' + avg + '%</b><i>' + v.length + ' тапсыру</i></div></td>';
+    });
+    html += '</tr>';
+  });
+  el.innerHTML = html;
+  $('heat-ramp').innerHTML = RAMP.map(function(c){
+    return '<i style="background:' + c + '"></i>';
+  }).join('');
+}
+
+/* ---------- уақыт бойынша динамика ---------- */
+function dayKey(iso){ var d = new Date(iso); return isNaN(d) ? '' : d.toISOString().slice(0,10); }
+function dayLabel(k){ return k.slice(8,10) + '.' + k.slice(5,7); }
+
+function daily(f){
+  var by = {};
+  f.forEach(function(r){
+    var k = dayKey(r.at); if(!k) return;
+    (by[k] = by[k] || []).push(r.pct);
+  });
+  return Object.keys(by).sort().map(function(k){
+    var v = by[k];
+    return { key:k, label:dayLabel(k), n:v.length,
+             avg: Math.round(v.reduce(function(a,b){ return a+b; }, 0) / v.length) };
+  });
+}
+
+/** Бағанды график — «қанша тапсырды». */
+function dayBars(el, days){
+  if(days.length < 1){ el.innerHTML = '<p class="empty">Дерек жоқ.</p>'; return; }
+  var W = 320, H = 130, L = 26, R = 6, T = 14, B = 26;
+  var max = Math.max.apply(null, days.map(function(d){ return d.n; }));
+  var iw = W - L - R, ih = H - T - B;
+  var bw = Math.max(6, Math.min(34, iw / days.length - 6));
+  var svg = '<svg class="plot" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Күн сайынғы тапсыру саны">';
+  [0, 0.5, 1].forEach(function(p){
+    var y = T + ih - ih * p;
+    svg += '<line class="grid" x1="' + L + '" y1="' + y + '" x2="' + (W-R) + '" y2="' + y + '"></line>' +
+           '<text class="lbl" x="' + (L-5) + '" y="' + (y+3) + '" text-anchor="end">' + Math.round(max*p) + '</text>';
+  });
+  days.forEach(function(d, i){
+    var x = L + (iw / days.length) * (i + 0.5) - bw/2;
+    var h = max ? (d.n / max) * ih : 0;
+    svg += '<rect class="bar" x="' + x + '" y="' + (T + ih - h) + '" width="' + bw + '" height="' + h +
+           '" rx="3"><title>' + esc(d.label) + ': ' + d.n + ' тапсыру</title></rect>';
+    if(days.length <= 12){
+      svg += '<text class="val" x="' + (x + bw/2) + '" y="' + (T + ih - h - 4) + '">' + d.n + '</text>';
+      svg += '<text class="lbl" x="' + (x + bw/2) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(d.label) + '</text>';
+    }
+  });
+  if(days.length > 12){
+    svg += '<text class="lbl" x="' + L + '" y="' + (H-8) + '">' + esc(days[0].label) + '</text>' +
+           '<text class="lbl" x="' + (W-R) + '" y="' + (H-8) + '" text-anchor="end">' + esc(days[days.length-1].label) + '</text>';
+  }
+  el.innerHTML = svg + '</svg>';
+}
+
+/** Сызықты график — «орташа нәтиже». */
+function dayLine(el, days){
+  if(days.length < 1){ el.innerHTML = '<p class="empty">Дерек жоқ.</p>'; return; }
+  var W = 320, H = 130, L = 30, R = 8, T = 14, B = 26;
+  var iw = W - L - R, ih = H - T - B;
+  var xs = function(i){ return days.length === 1 ? L + iw/2 : L + iw * (i / (days.length - 1)); };
+  var ys = function(v){ return T + ih - ih * (v / 100); };
+  var svg = '<svg class="plot" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Күн сайынғы орташа нәтиже">';
+  [0, 50, 100].forEach(function(v){
+    var y = ys(v);
+    svg += '<line class="grid" x1="' + L + '" y1="' + y + '" x2="' + (W-R) + '" y2="' + y + '"></line>' +
+           '<text class="lbl" x="' + (L-5) + '" y="' + (y+3) + '" text-anchor="end">' + v + '</text>';
+  });
+  if(days.length > 1){
+    svg += '<path class="ln" d="' + days.map(function(d, i){
+      return (i ? 'L' : 'M') + xs(i).toFixed(1) + ' ' + ys(d.avg).toFixed(1);
+    }).join(' ') + '"></path>';
+  }
+  days.forEach(function(d, i){
+    svg += '<circle class="dot" cx="' + xs(i).toFixed(1) + '" cy="' + ys(d.avg).toFixed(1) + '" r="4">' +
+           '<title>' + esc(d.label) + ': орташа ' + d.avg + '%, ' + d.n + ' тапсыру</title></circle>';
+  });
+  if(days.length <= 12){
+    days.forEach(function(d, i){
+      svg += '<text class="lbl" x="' + xs(i).toFixed(1) + '" y="' + (H-8) + '" text-anchor="middle">' + esc(d.label) + '</text>';
+    });
+  } else {
+    svg += '<text class="lbl" x="' + L + '" y="' + (H-8) + '">' + esc(days[0].label) + '</text>' +
+           '<text class="lbl" x="' + (W-R) + '" y="' + (H-8) + '" text-anchor="end">' + esc(days[days.length-1].label) + '</text>';
+  }
+  el.innerHTML = svg + '</svg>';
+}
+
+/* ---------- жауап таралымы ---------- */
+var pickedQ = null;
+
+function renderDist(f){
+  var host = $('q-dist');
+  var t = $('f-test').value;
+  if(!t || pickedQ === null){ host.innerHTML = ''; return; }
+  var test = TESTS.filter(function(x){ return x.title === t; })[0];
+  if(!test || !test.questions[pickedQ]){ host.innerHTML = ''; return; }
+  var q = test.questions[pickedQ];
+
+  function tally(getId){
+    var c = {}, total = 0;
+    q.options.forEach(function(o){ c[o.id] = 0; });
+    f.forEach(function(r){
+      var picks = (r.picks || '').split('|');
+      var raw = picks[pickedQ];
+      if(!raw || raw === '-') return;
+      var ids = getId(raw);
+      if(!ids.length) return;
+      total++;
+      ids.forEach(function(id){ if(c[id] !== undefined) c[id]++; });
+    });
+    return {c:c, total:total};
+  }
+
+  function block(title, res, correctIds){
+    var max = Math.max.apply(null, q.options.map(function(o){ return res.c[o.id]; }).concat([1]));
+    var worst = null;
+    q.options.forEach(function(o){
+      if(correctIds.indexOf(o.id) < 0 && (!worst || res.c[o.id] > res.c[worst])) worst = o.id;
+    });
+    var rows = q.options.map(function(o){
+      var n = res.c[o.id];
+      var right = correctIds.indexOf(o.id) >= 0;
+      var cls = right ? 'right' : (o.id === worst && n > 0 ? 'top-wrong' : '');
+      return '<div class="dline ' + cls + '">' +
+        '<span class="k">' + esc(o.id) + '</span>' +
+        '<span class="txt"><span class="lab" title="' + esc(o.text) + '">' + esc(o.text) +
+          (right ? '<span class="tag ok">дұрыс</span>'
+                 : (o.id === worst && n > 0 ? '<span class="tag bad">жиі алданған</span>' : '')) + '</span>' +
+        '<span class="bar"><i style="width:' + Math.round(n / max * 100) + '%"></i></span></span>' +
+        '<span class="n tnum">' + n + (res.total ? ' · ' + pct(n, res.total) + '%' : '') + '</span></div>';
+    }).join('');
+    return (title ? '<p class="eyebrow" style="margin-top:10px">' + esc(title) + '</p>' : '') +
+           '<div class="dist">' + rows + '</div>';
+  }
+
+  var head = '<p class="eyebrow" style="margin-top:14px">№' + (pickedQ+1) + ' — жауап таралымы</p>' +
+             '<p class="sub" style="margin:4px 0 8px">' + esc(q.q) + '</p>';
+
+  if(q.type === 'match'){
+    host.innerHTML = head + q.items.map(function(it, ii){
+      return block(it.text, tally(function(raw){
+        var id = raw[ii];
+        return (id && id !== '-') ? [id] : [];
+      }), [it.answer]);
+    }).join('');
+  } else {
+    var correct = q.type === 'multi' ? q.answer : [q.answer];
+    host.innerHTML = head + block('', tally(function(raw){ return raw.split(''); }), correct);
+  }
 }
 
 function renderTable(f){
