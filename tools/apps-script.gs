@@ -5,13 +5,21 @@
  * ----------------------------------
  * 1. sheets.new — жаңа Google кестесін ашыңыз.
  * 2. Кеңейтімдер (Extensions) → Apps Script.
- * 3. Редактордағы бар кодты өшіріп, осы файлды түгел қойыңыз.
+ * 3. Редактордағы бар кодты ТҮГЕЛ өшіріп (Ctrl+A → Delete), осы файлды қойыңыз.
+ *    Кодты `function myFunction() { ... }` ішіне САЛМАҢЫЗ — Apps Script
+ *    doPost пен doGet-ті тек сыртқы деңгейден іздейді.
  * 4. Төмендегі SECRET_KEY мәнін өзіңіздің құпия сөзіңізге ауыстырыңыз.
  *    Оны тек сіз білесіз — дашбордқа кіру үшін қажет.
+ *    SHEET_ID өрісіне кестенің мекенжайындағы ID-ді қойыңыз.
  * 5. Deploy → New deployment → түрі: Web app.
  *      Execute as:      Me
  *      Who has access:  Anyone            ← міндетті түрде осылай
- * 6. Deploy → рұқсат сұраса, келісіңіз.
+ * 6. Deploy → рұқсат сұрайды: Authorize access → аккаунт → «Google hasn't
+ *    verified this app» бетінде Advanced → Go to ... (unsafe) → Allow.
+ *
+ *    ТЕКСЕРУ: жарияланған мекенжайдың соңына ?key=ҚҰПИЯ-СӨЗІҢІЗ қосып,
+ *    браузерде ашыңыз. {"ok":true,"rows":[]} көрінсе — бәрі дұрыс.
+ *    Кіру беті шықса — «Who has access» «Anyone» емес.
  * 7. Шыққан мекенжайды (.../exec деп бітеді) көшіріп,
  *    репозиторийдегі config.json ішіндегі "submitUrl" өрісіне қойыңыз,
  *    сосын `python3 build.py` жүргізіп, өзгерісті пушқа жіберіңіз.
@@ -23,6 +31,15 @@
 var SECRET_KEY = 'ӨЗІҢІЗДІҢ-ҚҰПИЯ-СӨЗІҢІЗ';
 var SHEET_NAME = 'Нәтижелер';
 
+/**
+ * Кестенің ID-і. Кестенің мекенжайынан алынады:
+ *   docs.google.com/spreadsheets/d/ОСЫ_ЖЕР/edit
+ * Скрипт кестенің өз ішінен (Extensions → Apps Script) ашылса, бос
+ * қалдыруға болады. Бірақ жазып қойған дұрыс — сонда скрипт бөлек
+ * жасалса да кестені табады.
+ */
+var SHEET_ID = '';
+
 var HEADERS = [
   'Уақыты', 'Аты-жөні', 'Сынып/топ', 'Тест', 'Нұсқа коды',
   'Балл', 'Макс', 'Пайыз', 'Уақыты (сек)', 'Режим', 'Араластыру',
@@ -30,7 +47,13 @@ var HEADERS = [
 ];
 
 function sheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SHEET_ID
+    ? SpreadsheetApp.openById(SHEET_ID)
+    : SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    throw new Error('Кесте табылмады. SHEET_ID жазыңыз немесе скриптті ' +
+                    'кестенің ішінен (Extensions → Apps Script) ашыңыз.');
+  }
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);
