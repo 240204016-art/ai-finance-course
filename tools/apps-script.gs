@@ -94,6 +94,25 @@ function setup() {
   Logger.log('БӘРІ ДАЙЫН. Енді Deploy → Manage deployments → ✏️ → New version → Deploy.');
 }
 
+/**
+ * Парақтың бағандарын АТАУЫ бойынша табады.
+ *
+ * Бағандардың реті уақыт өте өзгерді («Аты-жөні» орнына «Тегі» мен
+ * «Есімі» келді, «Email» мен «Әрекет» қосылды). Нөмір бойынша оқысақ,
+ * ескі жазбалар жылжып кетеді — аты email бағанына, сыныбы тегі
+ * бағанына түседі. Сондықтан бәрі атау арқылы табылады.
+ */
+function colMap_(sh) {
+  var lastCol = sh.getLastColumn();
+  if (sh.getLastRow() === 0 || lastCol === 0) { return { names: [], index: {} }; }
+  var names = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (v) {
+    return String(v).trim();
+  });
+  var index = {};
+  names.forEach(function (n, i) { if (n) { index[n] = i; } });
+  return { names: names, index: index };
+}
+
 /** Бағандар өзгерсе, бос парақтың тақырыптарын жаңартады. */
 function migrate_(sh, headers, name) {
   var last = sh.getLastRow();
@@ -311,30 +330,45 @@ function doPost(e) {
     hit.sheet.getRange(hit.row, 7, 1, 3).setValues([[last, first, group]]);
 
     var sh = tab_(SHEET_NAME, HEADERS);
-    var attempt = 1;
+    var map = colMap_(sh);
     var lastRow = sh.getLastRow();          /* `last` — тегі, шатастырмау керек */
-    if (lastRow > 1) {
-      var prev = sh.getRange(2, 2, lastRow - 1, 6).getValues();   /* Email..Нұсқа коды */
+
+    /* Осы оқушының осы нұсқаны нешінші рет тапсырғаны. */
+    var attempt = 1;
+    var iEmail = map.index['Email'], iCode = map.index['Нұсқа коды'];
+    if (lastRow > 1 && iEmail !== undefined && iCode !== undefined) {
+      var prev = sh.getRange(2, 1, lastRow - 1, map.names.length).getValues();
       for (var i = 0; i < prev.length; i++) {
-        if (norm_(prev[i][0]) === email && String(prev[i][5]) === String(r.test)) {
+        if (norm_(prev[i][iEmail]) === email && String(prev[i][iCode]) === String(r.test)) {
           attempt++;
         }
       }
     }
 
     var id = Utilities.getUuid();
-    sh.appendRow([
-      new Date(), email, last, first, group,
-      String(r.testTitle || '').slice(0, 60),
-      String(r.test || '').slice(0, 40),
-      attempt,
-      Number(r.score) || 0, Number(r.max) || 0, Number(r.pct) || 0,
-      Number(r.seconds) || 0,
-      String(r.mode || ''), r.shuffled ? 'иә' : 'жоқ',
-      String(r.marks || '').slice(0, 300),
-      String(r.picks || '').slice(0, 2000),
-      id
-    ]);
+    var vals = {};
+    vals['Уақыты']        = new Date();
+    vals['Email']         = email;
+    vals['Тегі']          = last;
+    vals['Есімі']         = first;
+    vals['Аты-жөні']      = (last + ' ' + first).trim();   /* ескі бағандағы парақ үшін */
+    vals['Сынып/топ']     = group;
+    vals['Тест']          = String(r.testTitle || '').slice(0, 60);
+    vals['Нұсқа коды']    = String(r.test || '').slice(0, 40);
+    vals['Әрекет']        = attempt;
+    vals['Балл']          = Number(r.score) || 0;
+    vals['Макс']          = Number(r.max) || 0;
+    vals['Пайыз']         = Number(r.pct) || 0;
+    vals['Уақыты (сек)']  = Number(r.seconds) || 0;
+    vals['Режим']         = String(r.mode || '');
+    vals['Араластыру']    = r.shuffled ? 'иә' : 'жоқ';
+    vals['Белгілер']      = String(r.marks || '').slice(0, 300);
+    vals['Жауаптар']      = String(r.picks || '').slice(0, 2000);
+    vals['ID']            = id;
+
+    sh.appendRow(map.names.map(function (n) {
+      return vals[n] !== undefined ? vals[n] : '';
+    }));
     return json_({ ok: true, id: id, attempt: attempt });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
@@ -370,17 +404,44 @@ function route_(p) {
   var sh = tab_(SHEET_NAME, HEADERS);
   var lastRow = sh.getLastRow();
   if (lastRow < 2) { return json_({ ok: true, rows: [] }); }
-  var values = sh.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  var map = colMap_(sh);
+  var values = sh.getRange(2, 1, lastRow - 1, map.names.length).getValues();
+
+  function get(v, name) {
+    var i = map.index[name];
+    return i === undefined ? '' : v[i];
+  }
+  function num(v, name) {
+    var n = Number(get(v, name));
+    return isNaN(n) ? 0 : n;
+  }
+
   var rows = values.map(function (v) {
+    var lastN  = String(get(v, 'Тегі'));
+    var firstN = String(get(v, 'Есімі'));
+    var full   = (lastN + ' ' + firstN).trim();
+    if (!full) {                       /* ескі парақта бір ғана «Аты-жөні» бағаны */
+      full = String(get(v, 'Аты-жөні')).trim();
+      var sp = full.indexOf(' ');
+      lastN  = sp > 0 ? full.slice(0, sp) : full;
+      firstN = sp > 0 ? full.slice(sp + 1) : '';
+    }
+    var at = get(v, 'Уақыты');
     return {
-      at: v[0] instanceof Date ? v[0].toISOString() : String(v[0]),
-      email: String(v[1]), last: String(v[2]), first: String(v[3]),
-      name: (String(v[2]) + ' ' + String(v[3])).trim(),
-      group: String(v[4]),
-      testTitle: String(v[5]), test: String(v[6]), attempt: Number(v[7]) || 1,
-      score: Number(v[8]), max: Number(v[9]), pct: Number(v[10]),
-      seconds: Number(v[11]), mode: String(v[12]), shuffled: String(v[13]) === 'иә',
-      marks: String(v[14]), picks: String(v[15]), id: String(v[16])
+      at: at instanceof Date ? at.toISOString() : String(at),
+      email: String(get(v, 'Email')),
+      last: lastN, first: firstN, name: full,
+      group: String(get(v, 'Сынып/топ')),
+      testTitle: String(get(v, 'Тест')),
+      test: String(get(v, 'Нұсқа коды')),
+      attempt: num(v, 'Әрекет') || 1,
+      score: num(v, 'Балл'), max: num(v, 'Макс'), pct: num(v, 'Пайыз'),
+      seconds: num(v, 'Уақыты (сек)'),
+      mode: String(get(v, 'Режим')),
+      shuffled: String(get(v, 'Араластыру')) === 'иә',
+      marks: String(get(v, 'Белгілер')),
+      picks: String(get(v, 'Жауаптар')),
+      id: String(get(v, 'ID'))
     };
   });
   return json_({ ok: true, rows: rows });
