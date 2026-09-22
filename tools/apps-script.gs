@@ -11,12 +11,17 @@
  * 4. Deploy → New deployment → Web app.
  *      Execute as:      Me
  *      Who has access:  Anyone            ← міндетті түрде осылай
- * 5. Рұқсат сұрайды: Authorize access → аккаунт → «Google hasn't verified
- *    this app» бетінде Advanced → Go to ... (unsafe) → Allow.
+ * 5. Жоғарыдағы тізімнен `setup` таңдап, ▶ Run басыңыз. Рұқсат сұрайды:
+ *    Authorize access → аккаунт → «Google hasn't verified this app» бетінде
+ *    Advanced → Go to ... (unsafe) → Allow. Сынақ хат келсе — бәрі дұрыс.
  * 6. Мекенжайды config.json ішіндегі "submitUrl" өрісіне қойыңыз.
  *
  * Кодты кейін өзгертсеңіз: Deploy → Manage deployments → ✏️ →
  * Version: New version → Deploy. Сонда мекенжай өзгермейді.
+ *
+ * ЕСКЕРТУ: жаңа рұқсат керек болса (мысалы хат жіберу қосылғанда),
+ * алдымен `setup` функциясын Run арқылы бір рет іске қосыңыз — әйтпесе
+ * жарияланған қосымша ескі рұқсатпен жұмыс істеп, қате береді.
  *
  * ТЕКСЕРУ: мекенжайдың соңына ?key=ҚҰПИЯ-СӨЗ қосып браузерде ашыңыз.
  * {"ok":true,"rows":[]} көрінсе — бәрі дұрыс.
@@ -50,6 +55,43 @@ var HEADERS = [
 ];
 var CODE_HEADERS = ['Email', 'Код', 'Жіберілген', 'Код жарамды дейін',
                     'Токен', 'Токен жарамды дейін', 'Аты-жөні', 'Сынып/топ'];
+
+/**
+ * БІР РЕТ ІСКЕ ҚОСЫҢЫЗ: жоғарыдағы тізімнен `setup` таңдап, ▶ Run басыңыз.
+ *
+ * Не істейді:
+ *   - Google-ден қажетті рұқсаттарды сұрайды (хат жіберу де кіреді —
+ *     жаңа кодта бұл рұқсат бұрын болмаған, сондықтан міндетті қадам)
+ *   - парақтарды жасайды
+ *   - өзіңізге сынақ хат жібереді
+ *   - Execution log ішінде бәрі дұрыс па, соны жазады
+ */
+function setup() {
+  var me = Session.getEffectiveUser().getEmail();
+  Logger.log('Аккаунт: ' + me);
+
+  if (!SECRET_KEY || SECRET_KEY.indexOf('ӨЗІҢІЗДІҢ') === 0) {
+    throw new Error('SECRET_KEY толтырылмаған.');
+  }
+  Logger.log('SECRET_KEY: жазылған');
+
+  var ss = book_();
+  Logger.log('Кесте: ' + ss.getName());
+
+  tab_(SHEET_NAME, HEADERS);
+  tab_(CODES_NAME, CODE_HEADERS);
+  Logger.log('Парақтар дайын: ' + SHEET_NAME + ', ' + CODES_NAME);
+
+  MailApp.sendEmail({
+    to: me,
+    subject: 'Биология тесті — скрипт дұрыс орнатылды',
+    body: 'Бұл — сынақ хат. Осы хатты алсаңыз, кодтар оқушыларға да жетеді.\n\n' +
+          'Қалған тәулік шегі: ' + MailApp.getRemainingDailyQuota() + ' хат.'
+  });
+  Logger.log('Сынақ хат жіберілді: ' + me);
+  Logger.log('Тәулік шегі: ' + MailApp.getRemainingDailyQuota());
+  Logger.log('БӘРІ ДАЙЫН. Енді Deploy → Manage deployments → ✏️ → New version → Deploy.');
+}
 
 /* ---------- көмекші ---------- */
 
