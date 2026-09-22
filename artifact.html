@@ -438,15 +438,22 @@ function showStep(name){
 
 var pendingEmail = '';
 var EMAIL_RE = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
+/* Сұраныс жүріп жатқанда екіншісін жібермейміз. Батырма бұғатталады,
+   бірақ Enter пернесі оны айналып өтеді — ал екінші растау кодты
+   «қолданылған» деп тауып, бірінші сәтті жауаптың үстінен қате жазады. */
+var busySend = false, busyVerify = false;
 
 function sendCode(btn){
+  if(busySend) return;
   var email = $('in-email').value.trim().toLowerCase();
   if(!EMAIL_RE.test(email)){
     idErr('Email дұрыс жазылмаған.'); $('in-email').focus(); return;
   }
-  idErr(null); busy(btn, true, 'Жіберілуде…');
+  idErr(null); busySend = true;
+  busy($('b-send'), true, 'Жіберілуде…'); busy($('b-resend'), true, 'Жіберілуде…');
+  function done(){ busySend = false; busy($('b-send'), false); busy($('b-resend'), false); }
   api({action:'sendCode', email:email}).then(function(j){
-    busy(btn, false);
+    done();
     if(!j.ok){ idErr(j.error || 'Код жіберілмеді.'); return; }
     pendingEmail = email;
     $('code-to').textContent = email;
@@ -454,17 +461,18 @@ function sendCode(btn){
     showStep('code');
     setTimeout(function(){ $('in-code').focus(); }, 30);
   }).catch(function(err){
-    busy(btn, false);
+    done();
     idErr(err.message || 'Байланыс болмады. Интернетті тексеріңіз.');
   });
 }
 
 function verifyCode(){
+  if(busyVerify) return;
   var code = $('in-code').value.trim();
   if(!/^\d{6}$/.test(code)){ idErr('Код алты саннан тұруы керек.'); return; }
-  idErr(null); busy($('b-verify'), true, 'Тексерілуде…');
+  idErr(null); busyVerify = true; busy($('b-verify'), true, 'Тексерілуде…');
   api({action:'verify', email:pendingEmail, code:code}).then(function(j){
-    busy($('b-verify'), false);
+    busyVerify = false; busy($('b-verify'), false);
     if(!j.ok){ idErr(j.error || 'Код расталмады.'); return; }
     sess = { email:j.email, token:j.token,
              last:j.last||'', first:j.first||'', group:j.group||'',
@@ -472,7 +480,7 @@ function verifyCode(){
     save(KEY_SESS, sess);
     enterNameStep();
   }).catch(function(err){
-    busy($('b-verify'), false);
+    busyVerify = false; busy($('b-verify'), false);
     idErr(err.message || 'Байланыс болмады.');
   });
 }
