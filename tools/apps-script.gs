@@ -49,12 +49,12 @@ var TOKEN_TTL_HRS = 12;    /* кіргеннен кейін қанша саға�
 var RESEND_SEC    = 60;    /* кодты қайта сұрауға дейінгі үзіліс */
 
 var HEADERS = [
-  'Уақыты', 'Email', 'Аты-жөні', 'Сынып/топ', 'Тест', 'Нұсқа коды', 'Әрекет',
+  'Уақыты', 'Email', 'Тегі', 'Есімі', 'Сынып/топ', 'Тест', 'Нұсқа коды', 'Әрекет',
   'Балл', 'Макс', 'Пайыз', 'Уақыты (сек)', 'Режим', 'Араластыру',
   'Белгілер', 'Жауаптар', 'ID'
 ];
 var CODE_HEADERS = ['Email', 'Код', 'Жіберілген', 'Код жарамды дейін',
-                    'Токен', 'Токен жарамды дейін', 'Аты-жөні', 'Сынып/топ'];
+                    'Токен', 'Токен жарамды дейін', 'Тегі', 'Есімі', 'Сынып/топ'];
 
 /**
  * БІР РЕТ ІСКЕ ҚОСЫҢЫЗ: жоғарыдағы тізімнен `setup` таңдап, ▶ Run басыңыз.
@@ -78,8 +78,8 @@ function setup() {
   var ss = book_();
   Logger.log('Кесте: ' + ss.getName());
 
-  tab_(SHEET_NAME, HEADERS);
-  tab_(CODES_NAME, CODE_HEADERS);
+  migrate_(tab_(SHEET_NAME, HEADERS), HEADERS, SHEET_NAME);
+  migrate_(tab_(CODES_NAME, CODE_HEADERS), CODE_HEADERS, CODES_NAME);
   Logger.log('Парақтар дайын: ' + SHEET_NAME + ', ' + CODES_NAME);
 
   MailApp.sendEmail({
@@ -91,6 +91,22 @@ function setup() {
   Logger.log('Сынақ хат жіберілді: ' + me);
   Logger.log('Тәулік шегі: ' + MailApp.getRemainingDailyQuota());
   Logger.log('БӘРІ ДАЙЫН. Енді Deploy → Manage deployments → ✏️ → New version → Deploy.');
+}
+
+/** Бағандар өзгерсе, бос парақтың тақырыптарын жаңартады. */
+function migrate_(sh, headers, name) {
+  var last = sh.getLastRow();
+  if (last > 1) {
+    var have = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].join('|');
+    if (have !== headers.join('|')) {
+      Logger.log('НАЗАР: «' + name + '» парағында ескі бағандар мен дерек бар. ' +
+                 'Ескісін сақтап, парақтың атын өзгертіп, жаңасын жасатыңыз.');
+    }
+    return;
+  }
+  sh.getRange(1, 1, 1, Math.max(headers.length, sh.getLastColumn() || 1)).clearContent();
+  sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+  Logger.log('«' + name + '» бағандары жаңартылды.');
 }
 
 /* ---------- көмекші ---------- */
@@ -178,14 +194,15 @@ function sendCode_(email) {
 
     var code = String(Math.floor(100000 + Math.random() * 900000));
     var until = new Date(now.getTime() + CODE_TTL_MIN * 60000);
-    var name = hit.data ? hit.data[6] : '';
-    var group = hit.data ? hit.data[7] : '';
+    var last  = hit.data ? hit.data[6] : '';
+    var first = hit.data ? hit.data[7] : '';
+    var group = hit.data ? hit.data[8] : '';
 
     if (hit.row) {
       hit.sheet.getRange(hit.row, 1, 1, CODE_HEADERS.length)
-        .setValues([[email, code, now, until, '', '', name, group]]);
+        .setValues([[email, code, now, until, '', '', last, first, group]]);
     } else {
-      hit.sheet.appendRow([email, code, now, until, '', '', '', '']);
+      hit.sheet.appendRow([email, code, now, until, '', '', '', '', '']);
     }
 
     MailApp.sendEmail({
@@ -223,7 +240,7 @@ function verifyCode_(email, code) {
 
   return json_({
     ok: true, token: token, email: email,
-    name: hit.data[6] || '', group: hit.data[7] || '',
+    last: hit.data[6] || '', first: hit.data[7] || '', group: hit.data[8] || '',
     hours: TOKEN_TTL_HRS
   });
 }
@@ -248,19 +265,23 @@ function doPost(e) {
       return json_({ ok: false, error: 'Сеанс мерзімі өтті. Email арқылы қайта кіріңіз.',
                      needLogin: true });
     }
-    if (!r.name) { return json_({ ok: false, error: 'Аты-жөні жоқ.' }); }
+    var last  = String(r.last  || '').trim().slice(0, 60);
+    var first = String(r.first || '').trim().slice(0, 60);
+    var group = String(r.group || '').trim().slice(0, 60);
+    if (!last || !first || !group) {
+      return json_({ ok: false, error: 'Тегі, есімі және сыныбы толтырылуы керек.' });
+    }
 
-    /* атын кейінгі кіруде қайта сұрамау үшін сақтап қоямыз */
-    hit.sheet.getRange(hit.row, 7, 1, 2)
-      .setValues([[String(r.name).slice(0, 120), String(r.group || '').slice(0, 60)]]);
+    /* кейінгі кіруде қайта сұрамау үшін сақтап қоямыз */
+    hit.sheet.getRange(hit.row, 7, 1, 3).setValues([[last, first, group]]);
 
     var sh = tab_(SHEET_NAME, HEADERS);
     var attempt = 1;
-    var last = sh.getLastRow();
-    if (last > 1) {
-      var prev = sh.getRange(2, 2, last - 1, 5).getValues();   /* Email..Нұсқа коды */
+    var lastRow = sh.getLastRow();          /* `last` — тегі, шатастырмау керек */
+    if (lastRow > 1) {
+      var prev = sh.getRange(2, 2, lastRow - 1, 6).getValues();   /* Email..Нұсқа коды */
       for (var i = 0; i < prev.length; i++) {
-        if (norm_(prev[i][0]) === email && String(prev[i][4]) === String(r.test)) {
+        if (norm_(prev[i][0]) === email && String(prev[i][5]) === String(r.test)) {
           attempt++;
         }
       }
@@ -268,9 +289,7 @@ function doPost(e) {
 
     var id = Utilities.getUuid();
     sh.appendRow([
-      new Date(), email,
-      String(r.name).slice(0, 120),
-      String(r.group || '').slice(0, 60),
+      new Date(), email, last, first, group,
       String(r.testTitle || '').slice(0, 60),
       String(r.test || '').slice(0, 40),
       attempt,
@@ -297,24 +316,27 @@ function doGet(e) {
   if (p.action === 'session') {
     var hit = checkToken_(norm_(p.email), p.token);
     return hit
-      ? json_({ ok: true, email: norm_(p.email), name: hit.data[6] || '', group: hit.data[7] || '' })
+      ? json_({ ok: true, email: norm_(p.email), last: hit.data[6] || '',
+                first: hit.data[7] || '', group: hit.data[8] || '' })
       : json_({ ok: false, error: 'Сеанс мерзімі өтті.', needLogin: true });
   }
 
   if (p.key !== SECRET_KEY) { return json_({ ok: false, error: 'құпия сөз дұрыс емес' }); }
 
   var sh = tab_(SHEET_NAME, HEADERS);
-  var last = sh.getLastRow();
-  if (last < 2) { return json_({ ok: true, rows: [] }); }
-  var values = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) { return json_({ ok: true, rows: [] }); }
+  var values = sh.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
   var rows = values.map(function (v) {
     return {
       at: v[0] instanceof Date ? v[0].toISOString() : String(v[0]),
-      email: String(v[1]), name: String(v[2]), group: String(v[3]),
-      testTitle: String(v[4]), test: String(v[5]), attempt: Number(v[6]) || 1,
-      score: Number(v[7]), max: Number(v[8]), pct: Number(v[9]),
-      seconds: Number(v[10]), mode: String(v[11]), shuffled: String(v[12]) === 'иә',
-      marks: String(v[13]), picks: String(v[14]), id: String(v[15])
+      email: String(v[1]), last: String(v[2]), first: String(v[3]),
+      name: (String(v[2]) + ' ' + String(v[3])).trim(),
+      group: String(v[4]),
+      testTitle: String(v[5]), test: String(v[6]), attempt: Number(v[7]) || 1,
+      score: Number(v[8]), max: Number(v[9]), pct: Number(v[10]),
+      seconds: Number(v[11]), mode: String(v[12]), shuffled: String(v[13]) === 'иә',
+      marks: String(v[14]), picks: String(v[15]), id: String(v[16])
     };
   });
   return json_({ ok: true, rows: rows });
