@@ -80,6 +80,28 @@ button{font:inherit;color:inherit;cursor:pointer}
 .filters select,.filters input{font:inherit;font-size:14px;background:var(--surface);color:var(--ink);
   border:1px solid var(--line-2);border-radius:var(--r-s);padding:7px 10px}
 .filters .grow{flex:1;min-width:150px}
+.acc{padding:18px;display:flex;flex-direction:column;gap:12px}
+.acc .hrow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.acc h2{font-size:17px}
+.acc .sub{font-size:13px;color:var(--muted)}
+.badge{font-size:12.5px;font-weight:700;border-radius:999px;padding:2px 9px;
+  background:var(--accent-tint);color:var(--accent);white-space:nowrap}
+.badge.zero{background:var(--surface-2);color:var(--muted)}
+.acclist{display:flex;flex-direction:column;gap:8px}
+.accrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  border:1px solid var(--line);border-radius:var(--r-s);padding:10px 12px;background:var(--surface)}
+.accrow.wait{border-color:var(--accent);background:var(--accent-tint)}
+.accrow .who{display:flex;flex-direction:column;gap:1px;flex:1;min-width:190px}
+.accrow .who b{font-size:15px;font-weight:700}
+.accrow .who span{font-size:12.5px;color:var(--muted)}
+.accrow .st{font-size:12.5px;font-weight:700;white-space:nowrap}
+.accrow .st.ok{color:var(--ok)}
+.accrow .st.no{color:var(--bad)}
+.accrow .st.old{color:var(--muted)}
+.accrow .acts{display:flex;gap:8px;flex-wrap:wrap}
+.accrow .acts .btn{padding:6px 12px;font-size:13.5px}
+.acc .empty{font-size:14px;color:var(--muted)}
+.acc .amsg{font-size:13.5px;font-weight:700;color:var(--bad)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
 .tile{border:1px solid var(--line);border-radius:var(--r-s);padding:14px 16px;background:var(--surface);
   display:flex;flex-direction:column;gap:3px}
@@ -238,6 +260,19 @@ tbody tr:hover .rowgo{color:var(--accent)}
       <button class="btn" id="b-exit" type="button">Шығу</button>
     </div>
 
+    <section class="panel acc" id="acc">
+      <div class="hrow">
+        <h2>Кіру сұраныстары</h2>
+        <span class="badge zero" id="acc-badge">0</span>
+        <span class="spacer" style="flex:1"></span>
+        <button class="btn" id="acc-all" type="button" hidden>Барлығына рұқсат</button>
+        <button class="btn" id="acc-show" type="button" aria-pressed="false">Бәрін көрсету</button>
+      </div>
+      <p class="sub">Оқушы деректерін жазып «кіруді сұрайды» — сіз рұқсат бергенде ғана тест ашылады. Рұқсат сол құрылғыға ғана беріледі.</p>
+      <p class="amsg" id="acc-msg" hidden></p>
+      <div class="acclist" id="acc-list"></div>
+    </section>
+
     <div class="tiles" id="tiles"></div>
 
     <div class="panel card">
@@ -368,12 +403,14 @@ function msg(t){ var m=$('gate-msg'); if(t){ m.textContent=t; m.hidden=false; } 
 $('gate-go').addEventListener('click', gateGo);
 $('in-key').addEventListener('keydown', function(e){ if(e.key==='Enter') gateGo(); });
 $('b-exit').addEventListener('click', function(){
+  curKey = '';
   try{ localStorage.removeItem(KEY); }catch(e){}
+  accStop();
   $('app').hidden=true; $('gate').hidden=false; $('in-key').value=''; msg(null);
 });
 $('b-refresh').addEventListener('click', function(){
-  var k; try{ k=localStorage.getItem(KEY); }catch(e){}
-  if(k) load(k, false);
+  var k = dashKey();
+  if(k){ load(k, false); accLoad(false); }
 });
 
 function directUrl(key){
@@ -401,9 +438,11 @@ function load(key, fromGate){
         return;
       }
       if(!j || !j.ok){ msg(j && j.error ? j.error : 'Деректерді алу мүмкін болмады.'); return; }
+      curKey = key;
       try{ localStorage.setItem(KEY, key); }catch(e){}
       rows = j.rows || [];
       $('gate').hidden=true; $('app').hidden=false;
+      accStart();
       /* Көрсету қатесі желі қатесі емес — оны бөлек ұстаймыз, әйтпесе
          себебі «байланыс жоқ» деп бүркемеленіп қалады. */
       try{ fillFilters(); render(); }
@@ -427,6 +466,136 @@ function showDiag(text, url){
     'Скриптті тікелей ашып тексеру →</a><br>' +
     '<span style="font-weight:400;color:var(--muted)">Сол бетте <code>{"ok":true,...}</code> көрінсе, скрипт дұрыс.</span>';
 }
+
+/* ---------- кіру сұраныстары ---------- */
+var accRows = [], accAll = false, accTimer = null, accBusy = false;
+var ACC_EVERY = 8000;      /* сұраныстарды осынша сайын жаңартамыз */
+
+var curKey = '';
+function dashKey(){
+  if(curKey) return curKey;
+  try{ return localStorage.getItem(KEY) || ''; }catch(e){ return ''; }
+}
+
+function accApi(params){
+  var k = dashKey();
+  if(!k) return Promise.reject(new Error('құпия сөз жоқ'));
+  params.key = k;
+  var q = Object.keys(params).map(function(n){
+    return encodeURIComponent(n)+'='+encodeURIComponent(params[n]);
+  }).join('&');
+  return fetch(CFG.submitUrl + (CFG.submitUrl.indexOf('?')<0?'?':'&') + q)
+    .then(function(r){ return r.text(); })
+    .then(function(t){
+      try{ return JSON.parse(t); }
+      catch(e){ throw new Error('Сервер JSON емес жауап қайтарды.'); }
+    });
+}
+
+function accMsg(t){
+  var m=$('acc-msg');
+  if(t){ m.textContent=t; m.hidden=false; } else m.hidden=true;
+}
+
+function accLoad(quiet){
+  if(!CFG.submitUrl) return;
+  accApi({action:'access'}).then(function(j){
+    if(!j || !j.ok){
+      /* Ескі жарияланымда бұл әрекет жоқ — дашбордтың қалғанын бұзбаймыз. */
+      accMsg(j && j.error ? j.error : 'Сұраныстар тізімі алынбады.');
+      return;
+    }
+    accMsg(null);
+    accRows = j.list || [];
+    renderAcc();
+  }).catch(function(err){
+    if(!quiet) accMsg(err.message || 'Сұраныстар тізімі алынбады.');
+  });
+}
+
+function accStart(){
+  accStop();
+  accLoad(false);
+  accTimer = setInterval(function(){
+    if(!document.hidden) accLoad(true);
+  }, ACC_EVERY);
+}
+function accStop(){ if(accTimer){ clearInterval(accTimer); accTimer=null; } }
+
+function accWhen(ms){
+  if(!ms) return '';
+  var diff = Date.now() - ms;
+  if(diff < 60000) return 'жаңа ғана';
+  if(diff < 3600000) return Math.floor(diff/60000) + ' мин бұрын';
+  return fmtDate(new Date(ms).toISOString());
+}
+
+function renderAcc(){
+  var wait = accRows.filter(function(r){ return r.state === 'күтуде'; });
+  var b = $('acc-badge');
+  b.textContent = wait.length ? wait.length + ' күтуде' : 'күтуде жоқ';
+  b.className = 'badge' + (wait.length ? '' : ' zero');
+  $('acc-all').hidden = wait.length < 2;
+  $('acc-show').textContent = accAll ? 'Тек күтудегілер' : 'Бәрін көрсету';
+  $('acc-show').setAttribute('aria-pressed', accAll ? 'true' : 'false');
+
+  var show = accAll ? accRows : wait;
+  var el = $('acc-list');
+  if(!show.length){
+    el.innerHTML = '<p class="empty">' +
+      (accAll ? 'Әзірге бірде-бір сұраныс жоқ.'
+              : 'Күтудегі сұраныс жоқ. Барлық жазбаларды «Бәрін көрсету» арқылы қараңыз.') +
+      '</p>';
+    return;
+  }
+  el.innerHTML = show.map(function(r){
+    var st = r.state === 'күтуде'  ? '<span class="st">күтуде</span>'
+           : r.state === 'рұқсат'  ? '<span class="st ok">рұқсат берілген</span>'
+           : r.state === 'бас тартылды' ? '<span class="st no">бас тартылды</span>'
+           : '<span class="st old">мерзімі өткен</span>';
+    var acts = r.state === 'рұқсат'
+      ? '<button class="btn" data-no="'+esc(r.email)+'" type="button">Тоқтату</button>'
+      : '<button class="btn btn-primary" data-ok="'+esc(r.email)+'" type="button">Рұқсат</button>' +
+        (r.state === 'бас тартылды' ? ''
+          : '<button class="btn" data-no="'+esc(r.email)+'" type="button">Бас тарту</button>');
+    return '<div class="accrow'+(r.state==='күтуде'?' wait':'')+'">' +
+      '<span class="who"><b>'+esc(r.last+' '+r.first)+'</b>' +
+      '<span>'+esc(r.group)+' · '+esc(r.email)+' · '+esc(accWhen(r.asked))+'</span></span>' +
+      st + '<span class="acts">'+acts+'</span></div>';
+  }).join('');
+}
+
+function accDecide(email, ok){
+  if(accBusy) return;
+  accBusy = true;
+  accMsg(null);
+  accApi({action: ok ? 'approve' : 'deny', email: email}).then(function(j){
+    accBusy = false;
+    if(!j || !j.ok){ accMsg(j && j.error ? j.error : 'Шешім сақталмады.'); return; }
+    accLoad(false);
+  }).catch(function(err){
+    accBusy = false;
+    accMsg(err.message || 'Шешім сақталмады.');
+  });
+}
+
+$('acc-list').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.ok) accDecide(b.dataset.ok, true);
+  else if(b.dataset.no) accDecide(b.dataset.no, false);
+});
+$('acc-show').addEventListener('click', function(){ accAll = !accAll; renderAcc(); });
+$('acc-all').addEventListener('click', function(){
+  if(accBusy) return;
+  accBusy = true; accMsg(null);
+  accApi({action:'approveAll'}).then(function(j){
+    accBusy = false;
+    if(!j || !j.ok){ accMsg(j && j.error ? j.error : 'Рұқсат берілмеді.'); return; }
+    accLoad(false);
+  }).catch(function(err){
+    accBusy = false; accMsg(err.message || 'Рұқсат берілмеді.');
+  });
+});
 
 /* ---------- сүзгілер ---------- */
 function fillFilters(){

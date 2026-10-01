@@ -99,6 +99,13 @@ button{font:inherit;color:inherit;cursor:pointer}
   font-size:22px;text-align:center}
 .okline{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ok);font-weight:700}
 .okline .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.waitline{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;color:var(--ink-2)}
+.spin{width:13px;height:13px;border-radius:50%;flex:none;border:2px solid var(--line-2);border-top-color:var(--accent);animation:spin 800ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation-duration:2400ms}}
+.whobox{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.whobox b{font-weight:700}
+.whobox span{color:var(--ink-2)}
 @media(min-width:620px){.idrow{grid-template-columns:1fr 1fr 1fr}}
 .idform label .req{color:var(--bad);font-weight:700}
 .test-card[disabled]{opacity:.5;cursor:not-allowed}
@@ -282,31 +289,11 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
     <div class="panel idform" id="who-panel" hidden>
       <h2 id="who-title">Кіру</h2>
 
-      <div class="step" id="st-email">
-        <p class="hint" style="margin-top:-6px">Тестке кіру үшін email-іңізді растаңыз — оған алты саннан тұратын код жібереміз. Нәтижеңіз сол email арқылы есептеледі, сондықтан кодты ешкімге бермеңіз.</p>
-        <label for="in-email">Email
+      <div class="step" id="st-ask">
+        <p class="hint" style="margin-top:-6px">Тестке кіру үшін мұғалімнің рұқсаты керек. Деректеріңізді жазып жіберіңіз — мұғалім бекіткен соң нұсқалар ашылады.</p>
+        <label for="in-email">Email <span class="req">*</span>
           <input id="in-email" type="email" autocomplete="email" inputmode="email" maxlength="120" placeholder="aidana@example.kz">
         </label>
-        <div class="btn-row">
-          <button class="btn btn-primary" id="b-send" type="button">Код жіберу</button>
-        </div>
-      </div>
-
-      <div class="step" id="st-code" hidden>
-        <p class="hint" style="margin-top:-6px"><b id="code-to"></b> адресіне код жіберілді. Хат келмесе, «Спам» бумасын қараңыз.</p>
-        <label for="in-code">Растау коды
-          <input id="in-code" class="mono" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
-        </label>
-        <div class="btn-row">
-          <button class="btn btn-primary" id="b-verify" type="button">Растау</button>
-          <button class="btn" id="b-resend" type="button">Кодты қайта жіберу</button>
-          <button class="btn" id="b-other" type="button">Басқа email</button>
-        </div>
-      </div>
-
-      <div class="step" id="st-name" hidden>
-        <p class="okline"><i class="dot"></i><span id="name-email"></span> расталды</p>
-        <p class="hint" style="margin-top:-2px">Үшеуі де міндетті — нәтиже осы деректермен жазылады.</p>
         <div class="idrow">
           <label for="in-last"><span>Тегі <span class="req">*</span></span>
             <input id="in-last" type="text" autocomplete="family-name" maxlength="60" placeholder="Серікқызы">
@@ -318,6 +305,24 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
             <input id="in-group" type="text" autocomplete="off" maxlength="60" placeholder="11Ә">
           </label>
         </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="b-ask" type="button">Кіруді сұрау</button>
+        </div>
+      </div>
+
+      <div class="step" id="st-wait" hidden>
+        <p class="waitline"><i class="spin" aria-hidden="true"></i><span id="wait-msg">Мұғалімнің рұқсаты күтілуде…</span></p>
+        <p class="hint" style="margin-top:-2px"><b id="wait-who"></b> атынан сұраныс жіберілді. Бұл бетті жаппаңыз — рұқсат берілген бойда нұсқалар өзі ашылады.</p>
+        <div class="btn-row">
+          <button class="btn" id="b-check" type="button">Қазір тексеру</button>
+          <button class="btn" id="b-cancel" type="button">Деректерді өзгерту</button>
+        </div>
+      </div>
+
+      <div class="step" id="st-ok" hidden>
+        <p class="okline"><i class="dot"></i>Мұғалім рұқсат берді</p>
+        <p class="hint" style="margin-top:-2px">Нәтиже осы деректермен жазылады. Қате болса, мұғалімге айтыңыз.</p>
+        <div class="whobox" id="who-card"></div>
         <div class="btn-row">
           <button class="btn" id="b-signout" type="button">Шығу</button>
         </div>
@@ -404,7 +409,7 @@ segment('seg-time', function(b){ opts.minutes=+b.dataset.min; });
 segment('seg-shuffle', function(b){ opts.shuffle = b.dataset.val==='1'; });
 segment('seg-mode', function(b){ opts.mode = b.dataset.val; });
 
-/* ---------- email арқылы кіру ---------- */
+/* ---------- мұғалім бекітетін кіру ---------- */
 function api(params){
   var q = Object.keys(params).map(function(k){
     return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
@@ -430,69 +435,154 @@ function busy(btn, on, text){
 }
 
 function showStep(name){
-  $('st-email').hidden = name!=='email';
-  $('st-code').hidden  = name!=='code';
-  $('st-name').hidden  = name!=='name';
-  $('who-title').textContent = name==='name' ? 'Өзіңіз туралы' : 'Кіру';
+  $('st-ask').hidden  = name!=='ask';
+  $('st-wait').hidden = name!=='wait';
+  $('st-ok').hidden   = name!=='ok';
+  $('who-title').textContent = name==='ok' ? 'Кіру расталды' : 'Кіру';
 }
 
-var pendingEmail = '';
-var EMAIL_RE = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
-/* Сұраныс жүріп жатқанда екіншісін жібермейміз. Батырма бұғатталады,
-   бірақ Enter пернесі оны айналып өтеді — ал екінші растау кодты
-   «қолданылған» деп тауып, бірінші сәтті жауаптың үстінен қате жазады. */
-var busySend = false, busyVerify = false;
+/* Рұқсат осы браузерге беріледі. Оқушы сілтемені таратса, басқа
+   құрылғы өз белгісімен жаңа сұраныс жасайды да, мұғалім оны көреді. */
+var KEY_DEV = 'bio-ubt-device';
+var deviceId = (function(){
+  var d = load(KEY_DEV);
+  if(typeof d === 'string' && d.length >= 8) return d;
+  d = 'd-' + Date.now().toString(36) + '-' +
+      Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,10);
+  save(KEY_DEV, d);
+  return d;
+})();
 
-function sendCode(btn){
-  if(busySend) return;
-  var email = $('in-email').value.trim().toLowerCase();
-  if(!EMAIL_RE.test(email)){
-    idErr('Email дұрыс жазылмаған.'); $('in-email').focus(); return;
-  }
-  idErr(null); busySend = true;
-  busy($('b-send'), true, 'Жіберілуде…'); busy($('b-resend'), true, 'Жіберілуде…');
-  function done(){ busySend = false; busy($('b-send'), false); busy($('b-resend'), false); }
-  api({action:'sendCode', email:email}).then(function(j){
-    done();
-    if(!j.ok){ idErr(j.error || 'Код жіберілмеді.'); return; }
-    pendingEmail = email;
-    $('code-to').textContent = email;
-    $('in-code').value = '';
-    showStep('code');
-    setTimeout(function(){ $('in-code').focus(); }, 30);
+var EMAIL_RE = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
+var pending = null;        /* {email,last,first,group} — сұраныс жіберілген дерек */
+var pollId = null, pollSince = 0, errBack = 0, busyAsk = false, busyCheck = false;
+
+function askFields(){
+  return {
+    email: $('in-email').value.trim().toLowerCase(),
+    last:  $('in-last').value.trim(),
+    first: $('in-first').value.trim(),
+    group: $('in-group').value.trim()
+  };
+}
+
+function askValid(f){
+  if(!EMAIL_RE.test(f.email)){ idErr('Email дұрыс жазылмаған.'); $('in-email').focus(); return false; }
+  if(f.last.length  < 2){ idErr('Тегіңізді толық жазыңыз.');  $('in-last').focus();  return false; }
+  if(f.first.length < 2){ idErr('Есіміңізді толық жазыңыз.'); $('in-first').focus(); return false; }
+  if(!f.group){ idErr('Сыныбыңызды жазыңыз.'); $('in-group').focus(); return false; }
+  return true;
+}
+
+/* Сұраныс жүріп жатқанда екіншісін жібермейміз. Батырма бұғатталады,
+   бірақ Enter пернесі оны айналып өтеді. */
+function askAccess(){
+  if(busyAsk) return;
+  var f = askFields();
+  if(!askValid(f)) return;
+  idErr(null); busyAsk = true; busy($('b-ask'), true, 'Жіберілуде…');
+  api({action:'request', email:f.email, last:f.last, first:f.first,
+       group:f.group, device:deviceId}).then(function(j){
+    busyAsk = false; busy($('b-ask'), false);
+    if(!j.ok){ idErr(j.error || 'Сұраныс жіберілмеді.'); return; }
+    pending = f;
+    if(j.status === 'рұқсат'){ grant(j); return; }
+    enterWait('Мұғалімнің рұқсаты күтілуде…');
   }).catch(function(err){
-    done();
+    busyAsk = false; busy($('b-ask'), false);
     idErr(err.message || 'Байланыс болмады. Интернетті тексеріңіз.');
   });
 }
 
-function verifyCode(){
-  if(busyVerify) return;
-  var code = $('in-code').value.trim();
-  if(!/^\d{6}$/.test(code)){ idErr('Код алты саннан тұруы керек.'); return; }
-  idErr(null); busyVerify = true; busy($('b-verify'), true, 'Тексерілуде…');
-  api({action:'verify', email:pendingEmail, code:code}).then(function(j){
-    busyVerify = false; busy($('b-verify'), false);
-    if(!j.ok){ idErr(j.error || 'Код расталмады.'); return; }
-    sess = { email:j.email, token:j.token,
-             last:j.last||'', first:j.first||'', group:j.group||'',
-             exp: Date.now() + (j.hours||12)*3600000 };
-    save(KEY_SESS, sess);
-    enterNameStep();
-  }).catch(function(err){
-    busyVerify = false; busy($('b-verify'), false);
-    idErr(err.message || 'Байланыс болмады.');
+function enterWait(msg){
+  $('wait-msg').textContent = msg;
+  $('wait-who').textContent = pending.last + ' ' + pending.first + ', ' +
+                              pending.group + ' (' + pending.email + ')';
+  showStep('wait');
+  startPoll();
+}
+
+/* Сұрау аралығы: алғашқы екі минут жиі — мұғалім әдетте сол кезде
+   бекітеді. Содан кейін сиретеміз, әйтпесе ашық қалған бет Apps
+   Script-тің тәуліктік шегін босқа жеп қояды. */
+function nextWait(){
+  if(errBack) return errBack;
+  return (Date.now() - pollSince < 120000) ? 4000 : 10000;
+}
+function startPoll(){
+  stopPoll();
+  pollSince = Date.now(); errBack = 0;
+  pollId = setTimeout(pollTick, nextWait());
+}
+function stopPoll(){ if(pollId){ clearTimeout(pollId); pollId=null; } }
+
+function pollTick(){
+  pollId = null;
+  checkAccess(true);
+}
+
+function checkAccess(auto){
+  if(!pending || busyCheck) return;
+  busyCheck = true;
+  if(!auto) busy($('b-check'), true, 'Тексерілуде…');
+  api({action:'poll', email:pending.email, device:deviceId}).then(function(j){
+    busyCheck = false;
+    if(!auto) busy($('b-check'), false);
+    errBack = 0;
+    if(!j.ok){ idErr(j.error || 'Тексеру мүмкін болмады.'); again(); return; }
+    if(j.status === 'рұқсат'){ stopPoll(); grant(j); return; }
+    if(j.status === 'бас тартылды'){
+      stopPoll();
+      $('wait-msg').textContent = 'Мұғалім рұқсат бермеді.';
+      idErr('Мұғалім сұранысыңызды қабылдамады. Онымен сөйлесіп, қайта сұраңыз.');
+      return;
+    }
+    if(j.status === 'басқа'){
+      stopPoll();
+      $('wait-msg').textContent = 'Сұраныс басқа құрылғыдан жаңартылды.';
+      idErr('Бұл email басқа құрылғыдан сұралған. Осы құрылғыдан кіру үшін қайта сұраныс жіберіңіз.');
+      return;
+    }
+    if(j.status === 'өтті' || j.status === 'жоқ'){
+      stopPoll();
+      $('wait-msg').textContent = 'Рұқсаттың мерзімі өтті.';
+      idErr('Рұқсат мерзімі аяқталған. Қайта сұраныс жіберіңіз.');
+      return;
+    }
+    if(!auto) idErr('Әзірге рұқсат берілген жоқ — мұғалім бекіткенше күтіңіз.');
+    again();
+  }).catch(function(){
+    busyCheck = false;
+    if(!auto) busy($('b-check'), false);
+    /* Желі үзілсе сиретеміз — бірақ сәтті жауап келсе бірден қалпына келеді,
+       әйтпесе рұқсат берілгені кеш байқалады. */
+    errBack = Math.min((errBack || 4000) * 1.6, 30000);
+    again();
   });
 }
 
-function enterNameStep(){
-  $('name-email').textContent = sess.email;
-  $('in-last').value  = sess.last  || '';
-  $('in-first').value = sess.first || '';
-  $('in-group').value = sess.group || '';
-  showStep('name');
+function again(){
+  if(!pending) return;
+  stopPoll();
+  pollId = setTimeout(pollTick, nextWait());
+}
+
+function grant(j){
+  stopPoll();
+  sess = { email:j.email, token:j.token,
+           last:j.last||'', first:j.first||'', group:j.group||'',
+           exp: Date.now() + (j.hours||12)*3600000 };
+  save(KEY_SESS, sess);
+  enterOkStep();
+}
+
+function enterOkStep(){
+  $('who-card').innerHTML =
+    '<span>Тегі, есімі:</span> <b>' + esc(fullName()) + '</b>' +
+    '<span>Сыныбы:</span> <b>' + esc(sess.group) + '</b>' +
+    '<span>Email:</span> <b>' + esc(sess.email) + '</b>';
+  showStep('ok');
   renderHome();
-  if(!profileDone()) setTimeout(function(){ $('in-last').focus(); }, 30);
 }
 
 function profileDone(){
@@ -505,24 +595,35 @@ function fullName(){
   return ((sess.last||'') + ' ' + (sess.first||'')).trim();
 }
 
+function toAsk(keep){
+  stopPoll();
+  var f = keep || pending || {};
+  $('in-email').value = f.email || '';
+  $('in-last').value  = f.last  || '';
+  $('in-first').value = f.first || '';
+  $('in-group').value = f.group || '';
+  showStep('ask');
+}
+
 function signOut(){
-  sess = null; drop(KEY_SESS); pendingEmail='';
-  $('in-email').value=''; $('in-code').value='';
-  idErr(null); showStep('email'); renderHome();
+  var was = sess ? {email:sess.email, last:sess.last, first:sess.first, group:sess.group} : null;
+  sess = null; drop(KEY_SESS); pending = null;
+  idErr(null); toAsk(was); renderHome();
 }
 
 if(COLLECT){
-  $('b-send').addEventListener('click', function(){ sendCode($('b-send')); });
-  $('b-resend').addEventListener('click', function(){
-    $('in-email').value = pendingEmail; sendCode($('b-resend'));
-  });
-  $('b-other').addEventListener('click', function(){ idErr(null); showStep('email'); });
-  $('b-verify').addEventListener('click', verifyCode);
+  $('b-ask').addEventListener('click', askAccess);
+  $('b-check').addEventListener('click', function(){ idErr(null); errBack = 0; checkAccess(false); });
+  $('b-cancel').addEventListener('click', function(){ idErr(null); toAsk(); });
   $('b-signout').addEventListener('click', signOut);
-  $('in-email').addEventListener('keydown', function(e){ if(e.key==='Enter') $('b-send').click(); });
-  $('in-code').addEventListener('keydown', function(e){ if(e.key==='Enter') verifyCode(); });
-  $('in-code').addEventListener('input', function(){
-    this.value = this.value.replace(/\D/g,'').slice(0,6);
+  ['in-email','in-last','in-first','in-group'].forEach(function(id){
+    $(id).addEventListener('keydown', function(e){ if(e.key==='Enter') askAccess(); });
+  });
+  /* Бет фонда тұрғанда сұрау жібермейміз — қайта ашылғанда бірден тексереміз. */
+  document.addEventListener('visibilitychange', function(){
+    if(!pending || signedIn()) return;
+    if(document.hidden) stopPoll();
+    else if(!$('st-wait').hidden){ errBack = 0; checkAccess(true); }
   });
 }
 
@@ -914,7 +1015,7 @@ function sendResult(body, box){
     if(j && j.needLogin){
       sess = null; drop(KEY_SESS);
       show('bad','<b>Сеанс мерзімі өтті.</b> <span>Нәтиже сақталмады. Басты бетке оралып, '+
-        'email-іңізді қайта растаңыз да, тестті қайта тапсырыңыз.</span>');
+        'қайта кіру сұраңыз да, тестті қайта тапсырыңыз.</span>');
       return;
     }
     throw new Error(j && j.error ? j.error : 'сервер қабылдамады');
@@ -1070,8 +1171,7 @@ function renderHome(){
   if(COLLECT){
     w.textContent = ready
       ? 'Нәтиже ' + fullName() + ', ' + sess.group + ' (' + sess.email + ') атынан жіберіледі.'
-      : (signedIn() ? 'Нұсқаны ашу үшін тегіңізді, есіміңізді және сыныбыңызды жазыңыз.'
-                    : 'Нұсқаны ашу үшін email-іңізді растаңыз.');
+      : 'Нұсқалар мұғалім рұқсат бергеннен кейін ашылады.';
   }
   list.innerHTML='';
   TESTS.forEach(function(t, k){
@@ -1097,16 +1197,13 @@ function renderHome(){
 }
 
 function openTest(k){
-  if(COLLECT && !signedIn()){
-    idErr('Алдымен email-іңізді растаңыз.');
-    showStep(pendingEmail ? 'code' : 'email');
-    ($('in-code').offsetParent ? $('in-code') : $('in-email')).focus();
-    return;
-  }
-  if(COLLECT && !profileDone()){
-    idErr('Тегіңізді, есіміңізді және сыныбыңызды толық жазыңыз.');
-    ($('in-last').value.trim().length < 2 ? $('in-last')
-      : ($('in-first').value.trim().length < 2 ? $('in-first') : $('in-group'))).focus();
+  if(COLLECT && !(signedIn() && profileDone())){
+    if(pending && !$('st-wait').hidden){
+      idErr('Мұғалім әлі рұқсат берген жоқ — сәл күте тұрыңыз.');
+    } else {
+      idErr('Алдымен кіруді сұраңыз — мұғалім бекіткен соң нұсқалар ашылады.');
+      toAsk(); $('in-email').focus();
+    }
     return;
   }
   T = TESTS[k];
@@ -1121,21 +1218,6 @@ function enterTest(){
       function(){ st.done=false; begin(st); },
       function(){ drop(keyState(T.slug)); begin(buildSession()); });
   } else begin(buildSession());
-}
-
-function whoInput(){
-  if(!sess) return;
-  sess.last  = $('in-last').value.trim();
-  sess.first = $('in-first').value.trim();
-  sess.group = $('in-group').value.trim();
-  save(KEY_SESS, sess);
-  if(profileDone()) idErr(null);
-  renderHome();
-}
-if(COLLECT){
-  ['in-last','in-first','in-group'].forEach(function(id){
-    $(id).addEventListener('input', whoInput);
-  });
 }
 
 /* ---------- keyboard ---------- */
@@ -1164,8 +1246,8 @@ function start(){
     ? 'Тест аяқталғанда аты-жөніңіз, сыныбыңыз және нәтижеңіз мұғалімге жіберіледі. Прогресіңіз осы браузерде сақталады.'
     : 'Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді.') + KEYS_NOTE;
   if(COLLECT){
-    if(signedIn()) enterNameStep();
-    else { sess = null; drop(KEY_SESS); showStep('email'); }
+    if(signedIn() && profileDone()) enterOkStep();
+    else { var was = sess; sess = null; drop(KEY_SESS); toAsk(was); }
   }
   renderHome();
 }

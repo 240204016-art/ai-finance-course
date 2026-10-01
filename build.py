@@ -11,8 +11,10 @@
 беттің көрінісі мен логикасын өзгерту үшін src/page.html файлын түзетіп,
 осы скриптті қайта іске қосыңыз.
 """
+import collections
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).parent
 TITLE = "Биология ҰБТ сынағы"
@@ -76,6 +78,21 @@ def check(name, data):
                 raise SystemExit(f"{where}: дұрыс жауап белгіленбеген")
 
 
+def no_dupes(name, src):
+    """Бір атпен екі рет жарияланған функцияны ұстайды.
+
+    JS-те кейінгі `function x(){}` бұрынғысын үнсіз басып кетеді. Бізде
+    бұл екі рет шықты: дашбордтағы renderQuestions пен беттегі tick —
+    екеуі де «ештеңе болмағандай» істемей қойды. Сондықтан құрастыру
+    кезінде тексереміз.
+    """
+    names = re.findall(r"^function ([A-Za-z_$][\w$]*)\s*\(", src, re.M)
+    dupes = sorted(n for n, c in collections.Counter(names).items() if c > 1)
+    if dupes:
+        raise SystemExit(f"{name}: бір атпен екі рет жарияланған функция: "
+                         + ", ".join(dupes))
+
+
 def main() -> None:
     template = (ROOT / "src" / "page.html").read_text(encoding="utf-8")
     tests = load_tests()
@@ -86,6 +103,7 @@ def main() -> None:
     if "</script" in blob.lower():
         raise SystemExit("деректер ішінде </script> кездесті")
     page = template.replace("__DATA__", blob)
+    no_dupes("src/page.html", template)
 
     (ROOT / "artifact.html").write_text(page, encoding="utf-8")
 
@@ -99,7 +117,9 @@ def main() -> None:
     # ---- мұғалім дашборды ----
     dash_src = ROOT / "src" / "dashboard.html"
     if dash_src.exists():
-        dash = dash_src.read_text(encoding="utf-8").replace("__DATA__", blob)
+        dash_tpl = dash_src.read_text(encoding="utf-8")
+        no_dupes("src/dashboard.html", dash_tpl)
+        dash = dash_tpl.replace("__DATA__", blob)
         d_split = dash.index('<div class="wrap">')
         (ROOT / "dashboard.html").write_text(
             HEAD.format(description="Оқушылардың тест нәтижелерін талдайтын мұғалім дашборды.",
