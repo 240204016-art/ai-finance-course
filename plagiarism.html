@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Реферат тексеру</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap">
+<style>
+/* Layout: a teacher's desk — one column of sections; the comparison is two facing pages, marked like a red-pen check. */
+:root {
+  --bg: #f3f4f1;
+  --paper: #ffffff;
+  --ink: #1d2430;
+  --muted: #5e6675;
+  --line: #d9dcd6;
+  --accent: #1f4e8c;          /* учительские чернила */
+  --accent-soft: #e3ebf6;
+  --pen: #c0392b;             /* красная ручка */
+  --ok: #2e7d4f;
+  --warn: #b8730a;
+  --bad: #c0392b;
+  --m1: #ffe58a; --m2: #ffc7c2; --m3: #c9e8ff; --m4: #d6f2c4; --m5: #ecd4ff;
+  --mark-ink: #1d2430;
+  --flash: #1f4e8c;
+  --f-display: "PT Serif", Georgia, "Times New Roman", serif;
+  --f-body: "PT Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --f-mono: "PT Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #151922; --paper: #1d222d; --ink: #e6e8ec; --muted: #9aa2b1; --line: #2e3442;
+  --accent: #8fb4ec; --accent-soft: #23304a; --pen: #ff8a7a; --ok: #6fcf97; --warn: #f2b65a; --bad: #ff8a7a;
+  --m1: #6b5a12; --m2: #6e2f2a; --m3: #1f4a6b; --m4: #2f5a26; --m5: #4e3168; --mark-ink: #f4f5f7; --flash: #8fb4ec;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #151922; --paper: #1d222d; --ink: #e6e8ec; --muted: #9aa2b1; --line: #2e3442;
+  --accent: #8fb4ec; --accent-soft: #23304a; --pen: #ff8a7a; --ok: #6fcf97; --warn: #f2b65a; --bad: #ff8a7a;
+  --m1: #6b5a12; --m2: #6e2f2a; --m3: #1f4a6b; --m4: #2f5a26; --m5: #4e3168; --mark-ink: #f4f5f7; --flash: #8fb4ec;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--f-body); margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: clamp(28px, 4vw, 40px); }
+h2 { font-size: 22px; }
+h3 { font-size: 17px; }
+.lead { color: var(--muted); max-width: 68ch; margin: 6px 0 0; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--pen); font-weight: 700; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 22px; display: grid; gap: 16px; min-width: 0; }
+.head-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; }
+.note { font-size: 14px; color: var(--muted); }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+button, .btn { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+button:hover, .btn:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--paper); font-weight: 700; }
+button.link { border: 0; background: none; color: var(--accent); padding: 2px 4px; text-decoration: underline; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, .seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type=text], textarea, select { font: inherit; font-size: 15px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%; }
+textarea { min-height: 130px; resize: vertical; }
+label.fld { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+
+.add { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 22px; display: grid; gap: 10px; place-content: center; text-align: center; color: var(--muted); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop strong { color: var(--ink); font-family: var(--f-display); font-size: 18px; }
+.paste { display: grid; gap: 10px; }
+.paste .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.settings { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }
+.settings label.fld { width: 220px; }
+
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+.name { font-weight: 700; }
+.src-tag { display: inline-block; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--muted); margin-left: 6px; font-weight: 400; vertical-align: 2px; }
+.pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.pill.ok { color: var(--ok); border: 1px solid var(--ok); }
+.pill.warn { color: var(--warn); border: 1px solid var(--warn); }
+.pill.bad { color: var(--bad); border: 1px solid var(--bad); }
+.flag { color: var(--pen); font-size: 13px; font-weight: 700; }
+.bar { display: flex; align-items: center; gap: 10px; min-width: 170px; }
+.bar i { display: block; flex: 1; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; position: relative; }
+.bar i b { position: absolute; inset: 0 auto 0 0; background: var(--ok); border-radius: 4px; }
+.bar i b.warn { background: var(--warn); } .bar i b.bad { background: var(--bad); }
+.bar span { width: 48px; text-align: right; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); }
+
+.cmp-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+.cmp-head select { width: auto; max-width: 100%; }
+.cmp-stats { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: var(--muted); }
+.cmp-stats b { color: var(--ink); }
+.pages { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.page { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); display: grid; grid-template-rows: auto 1fr; }
+.page h3 { padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 16px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.page .txt { font-family: var(--f-display); font-size: 16px; line-height: 1.7; padding: 14px 16px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 68vh; overflow-y: auto; }
+.seg { color: var(--mark-ink); border-radius: 3px; padding: 1px 0; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.seg sup { font-family: var(--f-mono); font-size: 10px; color: var(--pen); font-weight: 700; margin-right: 2px; }
+.c0 { background: var(--m1); } .c1 { background: var(--m2); } .c2 { background: var(--m3); } .c3 { background: var(--m4); } .c4 { background: var(--m5); }
+.seg.flash { outline: 2px solid var(--flash); }
+.homo { text-decoration: underline wavy var(--pen); text-underline-offset: 3px; }
+.empty { color: var(--muted); font-style: italic; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 8px; font-size: 14px; }
+@media (max-width: 760px) {
+  .add, .pages { grid-template-columns: 1fr; }
+  section { padding: 16px; }
+  .wrap { padding-inline: 16px; }
+  .page .txt { max-height: 50vh; }
+}
+@media (prefers-reduced-motion: no-preference) { .page .txt { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Мұғалімге арналған құрал</div>
+    <h1>Реферат тексеру</h1>
+    <p class="lead">Оқушылардың рефераттарын бір-бірімен және сіз қосқан дереккөздермен (мысалы, Уикипедиядан көшірілген мәтінмен) салыстырады. Әр көшірілген үзінді екі мәтінде де бір нөмірмен және бір түспен белгіленеді. Латын әрпімен жасырылған сөздерді де табады.</p>
+  </header>
+
+  <section aria-labelledby="h-add">
+    <div class="head-row">
+      <h2 id="h-add">1. Жұмыстарды қосу</h2>
+      <span class="note">Файлдар компьютеріңізден шықпайды, бәрі браузерде тексеріледі.</span>
+    </div>
+    <div class="add">
+      <label class="drop" id="drop" for="file">
+        <strong>Файлдарды осында сүйреңіз</strong>
+        <span>немесе басып таңдаңыз: .docx, .pdf, .txt</span>
+        <span class="note">Бірден бірнеше файл таңдауға болады. Файл аты оқушының аты болып шығады.</span>
+        <input type="file" id="file" multiple accept=".txt,.docx,.pdf,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+      </label>
+      <form class="paste" id="pasteForm">
+        <div class="row">
+          <label class="fld">Оқушының аты-жөні немесе дереккөз атауы
+            <input type="text" id="pName" placeholder="Мысалы: Асанов Ерлан, 9А" autocomplete="off">
+          </label>
+          <label class="fld">Түрі
+            <select id="pRole"><option value="s">Оқушы жұмысы</option><option value="r">Дереккөз</option></select>
+          </label>
+        </div>
+        <label class="fld">Мәтін
+          <textarea id="pText" placeholder="Рефераттың мәтінін осында қойыңыз"></textarea>
+        </label>
+        <div><button class="primary" type="submit">Мәтінді қосу</button></div>
+      </form>
+    </div>
+    <div class="settings">
+      <label class="fld">Сәйкестік ұзындығы
+        <select id="kSel">
+          <option value="4">4 сөзден бастап (қатаң)</option>
+          <option value="5" selected>5 сөзден бастап</option>
+          <option value="6">6 сөзден бастап</option>
+          <option value="8">8 сөзден бастап (жұмсақ)</option>
+        </select>
+      </label>
+      <p class="note" style="margin:0;max-width:60ch">Қатарынан осынша сөз екі мәтінде бірдей тұрса, көшірме деп есептеледі. Сөздердің бас-кіші әрпі мен тыныс белгілері ескерілмейді.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Жұмыс</th><th>Сөз саны</th><th>Түпнұсқалығы</th><th>Ең көп көшірілген жері</th><th>Белгілер</th><th></th></tr></thead>
+        <tbody id="docRows"></tbody>
+      </table>
+    </div>
+    <div class="head-row">
+      <span class="note" id="sampleNote"></span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="copyReport">Есепті көшіру</button>
+        <button type="button" id="clearAll">Бәрін өшіру</button>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-pairs">
+    <div class="head-row">
+      <h2 id="h-pairs">2. Ұқсас жұптар</h2>
+      <div class="legend"><span class="pill ok">0–24% таза</span><span class="pill warn">25–49% күдікті</span><span class="pill bad">50%+ көшірме</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Бірінші жұмыс</th><th>Екінші жұмыс</th><th>1-ші жұмыстың қанша бөлігі 2-шіде бар</th><th>2-ші жұмыстың қанша бөлігі 1-шіде бар</th><th>Үзінді</th><th></th></tr></thead>
+        <tbody id="pairRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-cmp" id="cmp">
+    <div class="head-row">
+      <h2 id="h-cmp">3. Қатар қойып салыстыру</h2>
+      <span class="note">Белгіленген үзіндіні бассаңыз, екінші мәтіндегі сол жерге апарады.</span>
+    </div>
+    <div class="cmp-head">
+      <select id="selA" aria-label="Бірінші жұмыс"></select>
+      <span aria-hidden="true">↔</span>
+      <select id="selB" aria-label="Екінші жұмыс"></select>
+    </div>
+    <div class="cmp-stats" id="cmpStats"></div>
+    <div class="pages">
+      <div class="page"><h3 id="tA"></h3><div class="txt" id="txtA"></div></div>
+      <div class="page"><h3 id="tB"></h3><div class="txt" id="txtB"></div></div>
+    </div>
+    <p class="note" style="margin:0"><span class="homo">Толқынды қызыл сызық</span> — кирилл сөзінің ішіне латын әрпі қосылған (антиплагиатты алдау тәсілі).</p>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- мысал мәтіндер ---------- */
+  var LATIN_TO_CYR = { a:'а', c:'с', e:'е', o:'о', p:'р', x:'х', y:'у', k:'к', h:'һ', i:'і', b:'в', m:'м', t:'т' };
+  function latinize(s) {   /* мысал үшін: кейбір кирилл әріптерін латынға ауыстырады */
+    var back = { 'а':'a', 'о':'o', 'е':'e', 'с':'c', 'р':'p' }, n = 0;
+    return s.replace(/[аоеср]/g, function (ch) { n++; return n % 3 === 0 ? back[ch] : ch; });
+  }
+  var COMMON = 'Бұл процесс жапырақ жасушаларындағы хлоропластарда жүреді. Хлоропластардың ішінде жасыл пигмент хлорофилл болады, ол жарықты сіңіреді. Фотосинтез екі кезеңнен тұрады: жарық кезеңі және қараңғы кезеңі. Жарық кезеңінде су молекулалары ыдырап, оттегі бөлінеді және АТФ түзіледі. Қараңғы кезеңде Кальвин циклі арқылы көмірқышқыл газы глюкозаға айналады.';
+  var WIKI = 'Фотосинтез нәтижесінде жыл сайын шамамен 150 миллиард тонна органикалық зат түзіліп, 200 миллиард тоннаға жуық бос оттегі бөлінеді. Фотосинтез биосферадағы зат пен энергия айналымының негізгі көзі болып табылады, сондықтан ол жер бетіндегі тіршіліктің негізі саналады.';
+  var SAMPLES = [
+    { name: 'Асанов Ерлан, 9А', role: 's', text:
+      'Фотосинтез — жасыл өсімдіктердің күн сәулесінің энергиясын пайдаланып, көмірқышқыл газы мен судан органикалық заттар түзетін процесі.\n\n' + COMMON +
+      '\n\nФотосинтездің арқасында атмосферадағы оттегінің мөлшері сақталады, ал барлық тірі ағзалар қоректік заттармен қамтамасыз етіледі. Менің ойымша, фотосинтезді зерттеу ауыл шаруашылығында өнімділікті арттыруға көмектеседі.' },
+    { name: 'Бекова Айгерім, 9А', role: 's', text:
+      'Өсімдіктер тіршілігінің негізі — фотосинтез. Мен бұл рефератта оның маңызын қарастырамын.\n\n' + COMMON +
+      '\n\nСонымен қатар өсімдіктер ауаны тазартып, климатты реттеуге қатысады. Қалада ағаш көп отырғызылса, адамдардың денсаулығы жақсарады деп ойлаймын.' },
+    { name: 'Серікұлы Нұрлан, 9Ә', role: 's', text:
+      'Мен фотосинтез тақырыбын таңдадым, себебі бұл биологиядағы ең қызықты құбылыс. Жапырақтың түсі жасыл болуы хлорофиллге байланысты.\n\n' + latinize(WIKI) +
+      '\n\nМектеп ауласында біз бұршақ өсіріп, жарықсыз қалған өскіннің сарғайып кеткенін байқадық. Бұл тәжірибе жарықтың маңызын көрсетті.' },
+    { name: 'Уикипедия: Фотосинтез', role: 'r', text:
+      'Фотосинтез — жарық энергиясының әсерінен хлорофилл қатысуымен бейорганикалық заттардан органикалық заттардың түзілу процесі. ' + WIKI }
+  ];
+
+  /* ---------- күй ---------- */
+  var docs = [];          /* {id, name, role, text, toks, homo, sample} */
+  var nextId = 1;
+  var K = 5;
+  var pairs = [];         /* {a, b, segs, pa, pb} */
+  var current = { a: null, b: null };
+
+  /* ---------- мәтінді сөздерге бөлу ---------- */
+  var WORD = /[\p{L}\p{N}]+/gu;
+  var HAS_CYR = /[Ѐ-ӿ]/, HAS_LAT = /[a-z]/i;
+  function tokenize(text) {
+    var toks = [], homo = 0, m;
+    WORD.lastIndex = 0;
+    while ((m = WORD.exec(text))) {
+      var raw = m[0], w = raw.toLowerCase().replace(/ё/g, 'е'), mixed = false;
+      if (HAS_CYR.test(w) && HAS_LAT.test(w)) {
+        mixed = true; homo++;
+        w = w.replace(/[a-z]/g, function (c) { return LATIN_TO_CYR[c] || c; });
+      }
+      toks.push({ w: w, s: m.index, e: m.index + raw.length, mixed: mixed });
+    }
+    return { toks: toks, homo: homo };
+  }
+
+  function addDoc(name, role, text, sample) {
+    text = String(text || '').replace(/\r\n?/g, '\n').trim();
+    if (!text) { toast('«' + name + '» ішінде мәтін табылмады.'); return; }
+    var t = tokenize(text);
+    docs.push({ id: nextId++, name: name, role: role, text: text, toks: t.toks, homo: t.homo, sample: !!sample });
+  }
+
+  /* ---------- салыстыру ---------- */
+  function index(doc) {
+    if (doc._k === K) return doc._idx;
+    var idx = new Map(), t = doc.toks;
+    for (var i = 0; i + K <= t.length; i++) {
+      var key = t[i].w; for (var j = 1; j < K; j++) key += ' ' + t[i + j].w;
+      var arr = idx.get(key); if (arr) arr.push(i); else idx.set(key, [i]);
+    }
+    doc._k = K; doc._idx = idx; return idx;
+  }
+  function compare(A, B) {
+    var idxB = index(B), ta = A.toks, tb = B.toks, segs = [], i = 0;
+    while (i + K <= ta.length) {
+      var key = ta[i].w; for (var j = 1; j < K; j++) key += ' ' + ta[i + j].w;
+      var hits = idxB.get(key), best = 0, bestJ = -1;
+      if (hits) {
+        for (var h = 0; h < hits.length && h < 60; h++) {
+          var bj = hits[h], m = K;
+          while (i + m < ta.length && bj + m < tb.length && ta[i + m].w === tb[bj + m].w) m++;
+          if (m > best) { best = m; bestJ = bj; }
+        }
+      }
+      if (best >= K) { segs.push({ a: i, b: bestJ, len: best }); i += best; } else i++;
+    }
+    var covB = new Uint8Array(tb.length), nb = 0, na = 0;
+    segs.forEach(function (s) { na += s.len; for (var q = s.b; q < s.b + s.len; q++) if (!covB[q]) { covB[q] = 1; nb++; } });
+    return { segs: segs, pa: ta.length ? na / ta.length : 0, pb: tb.length ? nb / tb.length : 0, words: na };
+  }
+
+  function analyze() {
+    pairs = [];
+    docs.forEach(function (d) { d.cov = new Uint8Array(d.toks.length); d.top = null; });
+    for (var x = 0; x < docs.length; x++) for (var y = x + 1; y < docs.length; y++) {
+      var A = docs[x], B = docs[y];
+      if (A.role === 'r' && B.role === 'r') continue;
+      var r = compare(A, B);
+      r.a = A; r.b = B; pairs.push(r);
+      r.segs.forEach(function (s) {
+        for (var q = 0; q < s.len; q++) { A.cov[s.a + q] = 1; B.cov[s.b + q] = 1; }
+      });
+      if (!A.top || r.pa > A.top.p) A.top = { p: r.pa, other: B };
+      if (!B.top || r.pb > B.top.p) B.top = { p: r.pb, other: A };
+    }
+    docs.forEach(function (d) {
+      var c = 0; for (var i = 0; i < d.cov.length; i++) c += d.cov[i];
+      d.orig = d.toks.length ? 1 - c / d.toks.length : 1;
+    });
+    pairs.sort(function (p, q) { return Math.max(q.pa, q.pb) - Math.max(p.pa, p.pb); });
+  }
+
+  /* ---------- көрсету ---------- */
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pct(v) { return Math.round(v * 100) + '%'; }
+  function level(copied) { return copied >= 0.5 ? 'bad' : copied >= 0.25 ? 'warn' : 'ok'; }
+  function docName(d) { return esc(d.name) + (d.role === 'r' ? '<span class="src-tag">дереккөз</span>' : ''); }
+  var $ = function (id) { return document.getElementById(id); };
+
+  function renderDocs() {
+    var rows = docs.map(function (d) {
+      var lv = level(1 - d.orig), flags = [];
+      if (d.homo) flags.push('<span class="flag">Латын әрпі: ' + d.homo + ' сөзде</span>');
+      var orig = d.role === 'r' ? '<span class="note">тексерілмейді</span>' :
+        '<div class="bar"><i><b class="' + lv + '" style="width:' + Math.round(d.orig * 100) + '%"></b></i><span class="num">' + pct(d.orig) + '</span></div>';
+      var top = d.top && d.top.p > 0 ? '<button class="link" data-open="' + d.id + ':' + d.top.other.id + '">' + esc(d.top.other.name) + '</button> <span class="pill ' + level(d.top.p) + ' num">' + pct(d.top.p) + '</span>' : '<span class="note">сәйкестік жоқ</span>';
+      return '<tr><td class="name">' + docName(d) + '</td><td class="num">' + d.toks.length + '</td><td>' + orig + '</td><td>' + top + '</td><td>' + (flags.join('<br>') || '<span class="note">—</span>') + '</td>' +
+        '<td><button class="link" data-del="' + d.id + '" aria-label="' + esc(d.name) + ' өшіру">Өшіру</button></td></tr>';
+    });
+    $('docRows').innerHTML = rows.join('') || '<tr><td colspan="6" class="empty">Әзірге жұмыс жоқ. Файл жүктеңіз немесе мәтін қойыңыз.</td></tr>';
+    var hasSample = docs.some(function (d) { return d.sample; });
+    $('sampleNote').innerHTML = hasSample ? 'Қазір <b>мысал жұмыстар</b> көрсетіліп тұр. Өз жұмыстарыңызды қосқанда олар автоматты түрде өшеді.' : docs.length + ' жұмыс тексерілді.';
+  }
+
+  function renderPairs() {
+    var shown = pairs.filter(function (p) { return p.segs.length; });
+    $('pairRows').innerHTML = shown.map(function (p) {
+      return '<tr><td class="name">' + docName(p.a) + '</td><td class="name">' + docName(p.b) + '</td>' +
+        '<td><span class="pill ' + level(p.pa) + ' num">' + pct(p.pa) + '</span></td>' +
+        '<td><span class="pill ' + level(p.pb) + ' num">' + pct(p.pb) + '</span></td>' +
+        '<td class="num">' + p.segs.length + '</td>' +
+        '<td><button class="link" data-open="' + p.a.id + ':' + p.b.id + '">Көру</button></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">Ұқсас жұптар табылмады.</td></tr>';
+  }
+
+  function fillSelects() {
+    var opts = docs.map(function (d) { return '<option value="' + d.id + '">' + esc(d.name) + (d.role === 'r' ? ' (дереккөз)' : '') + '</option>'; }).join('');
+    $('selA').innerHTML = opts; $('selB').innerHTML = opts;
+  }
+
+  function markup(doc, segs, side) {
+    /* side: 'a' — сегменттің a-бөлігі, 'b' — b-бөлігі */
+    var spans = segs.map(function (s, n) {
+      var st = side === 'a' ? s.a : s.b;
+      return { from: st, to: st + s.len - 1, n: n };
+    }).sort(function (x, y) { return x.from - y.from; });
+    var t = doc.toks, text = doc.text, out = '', pos = 0, si = 0, i = 0;
+    function word(k) { var tk = t[k], w = esc(text.slice(tk.s, tk.e)); return tk.mixed ? '<span class="homo" title="Латын әрпі бар">' + w + '</span>' : w; }
+    while (i < t.length) {
+      while (si < spans.length && spans[si].to < i) si++;
+      var sp = spans[si];
+      if (sp && sp.from <= i) {
+        out += esc(text.slice(pos, t[i].s));
+        var end = sp.to;
+        out += '<span class="seg c' + (sp.n % 5) + '" tabindex="0" role="button" id="' + side + '-' + sp.n + '" data-seg="' + sp.n + '" data-side="' + side + '"><sup>' + (sp.n + 1) + '</sup>';
+        for (var k = i; k <= end; k++) { out += word(k); if (k < end) out += esc(text.slice(t[k].e, t[k + 1].s)); }
+        out += '</span>';
+        pos = t[end].e; i = end + 1; si++;
+      } else {
+        out += esc(text.slice(pos, t[i].s)) + word(i);
+        pos = t[i].e; i++;
+      }
+    }
+    return out + esc(text.slice(pos));
+  }
+
+  function find(id) { return docs.find(function (d) { return d.id === +id; }); }
+  function openPair(aId, bId, scroll) {
+    var A = find(aId), B = find(bId);
+    if (!A || !B) { $('txtA').innerHTML = $('txtB').innerHTML = '<span class="empty">Жұмыс таңдаңыз.</span>'; $('tA').textContent = $('tB').textContent = ''; $('cmpStats').innerHTML = ''; return; }
+    current = { a: A.id, b: B.id };
+    $('selA').value = A.id; $('selB').value = B.id;
+    var r = A === B ? { segs: [], pa: 0, pb: 0, words: 0 } : compare(A, B);
+    $('tA').innerHTML = '<span>' + docName(A) + '</span><span class="pill ' + level(r.pa) + ' num">' + pct(r.pa) + ' сәйкес</span>';
+    $('tB').innerHTML = '<span>' + docName(B) + '</span><span class="pill ' + level(r.pb) + ' num">' + pct(r.pb) + ' сәйкес</span>';
+    $('txtA').innerHTML = markup(A, r.segs, 'a');
+    $('txtB').innerHTML = markup(B, r.segs, 'b');
+    var longest = r.segs.reduce(function (m, s) { return Math.max(m, s.len); }, 0);
+    $('cmpStats').innerHTML = A === B ? 'Екі түрлі жұмыс таңдаңыз.' :
+      '<span>Ортақ үзінді: <b class="num">' + r.segs.length + '</b></span><span>Ортақ сөз: <b class="num">' + r.words + '</b></span><span>Ең ұзын үзінді: <b class="num">' + longest + '</b> сөз</span>';
+    if (scroll) $('cmp').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function jump(el) {
+    var other = el.dataset.side === 'a' ? 'b' : 'a', tgt = $(other + '-' + el.dataset.seg);
+    if (!tgt) return;
+    var box = tgt.parentElement.closest('.txt') || tgt.parentElement;
+    box.scrollTop = tgt.offsetTop - box.offsetTop - 40;
+    [el, tgt].forEach(function (x) { x.classList.add('flash'); setTimeout(function () { x.classList.remove('flash'); }, 1400); });
+  }
+
+  function refresh() {
+    analyze(); renderDocs(); renderPairs(); fillSelects();
+    var top = pairs.find(function (p) { return p.segs.length; });
+    if (find(current.a) && find(current.b) && current.a !== current.b) openPair(current.a, current.b);
+    else if (top) openPair(top.a.id, top.b.id);
+    else if (docs.length > 1) openPair(docs[0].id, docs[1].id);
+    else openPair(docs[0] && docs[0].id, docs[1] && docs[1].id);
+  }
+
+  /* ---------- файл оқу ---------- */
+  function readFile(f) {
+    var ext = (f.name.split('.').pop() || '').toLowerCase();
+    var name = f.name.replace(/\.[^.]+$/, '');
+    if (ext === 'txt') return f.text().then(function (t) { return [name, t]; });
+    if (ext === 'docx') {
+      if (!window.mammoth) return Promise.reject(new Error('Word оқитын кітапхана жүктелмеді'));
+      return f.arrayBuffer().then(function (buf) { return mammoth.extractRawText({ arrayBuffer: buf }); }).then(function (r) { return [name, r.value]; });
+    }
+    if (ext === 'pdf') {
+      var lib = window.pdfjsLib;
+      if (!lib) return Promise.reject(new Error('PDF оқитын кітапхана жүктелмеді'));
+      lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      return f.arrayBuffer().then(function (buf) { return lib.getDocument({ data: buf }).promise; }).then(function (pdf) {
+        var jobs = [];
+        for (var p = 1; p <= pdf.numPages; p++) jobs.push(pdf.getPage(p).then(function (pg) { return pg.getTextContent(); }).then(function (tc) {
+          return tc.items.map(function (it) { return it.str + (it.hasEOL ? '\n' : ' '); }).join('');
+        }));
+        return Promise.all(jobs).then(function (pages) { return [name, pages.join('\n\n')]; });
+      });
+    }
+    if (ext === 'doc') return Promise.reject(new Error('ескі .doc форматы. Word-та «Басқаша сақтау → .docx» жасаңыз'));
+    return Promise.reject(new Error('бұл файл түрі қолдау көрсетілмейді'));
+  }
+  function dropSamples() {
+    if (docs.some(function (d) { return d.sample; })) { docs = docs.filter(function (d) { return !d.sample; }); current = { a: null, b: null }; }
+  }
+  function handleFiles(list) {
+    var files = Array.prototype.slice.call(list);
+    if (!files.length) return;
+    toast(files.length + ' файл оқылуда…');
+    Promise.all(files.map(function (f) {
+      return readFile(f).then(function (r) { return { ok: r }; }, function (e) { return { err: f.name + ': ' + e.message }; });
+    })).then(function (res) {
+      var ok = res.filter(function (r) { return r.ok; });
+      if (ok.length) dropSamples();
+      ok.forEach(function (r) { addDoc(r.ok[0], 's', r.ok[1]); });
+      var errs = res.filter(function (r) { return r.err; }).map(function (r) { return r.err; });
+      refresh();
+      toast(errs.length ? 'Оқылмады — ' + errs.join('; ') : ok.length + ' жұмыс қосылды.');
+    });
+  }
+
+  /* ---------- оқиғалар ---------- */
+  var drop = $('drop');
+  $('file').addEventListener('change', function (e) { handleFiles(e.target.files); e.target.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { handleFiles(e.dataTransfer.files); });
+
+  $('pasteForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = $('pText').value.trim(), name = $('pName').value.trim();
+    if (!text) { toast('Алдымен мәтінді қойыңыз.'); $('pText').focus(); return; }
+    dropSamples();
+    addDoc(name || ('Жұмыс ' + (docs.length + 1)), $('pRole').value, text);
+    $('pText').value = ''; $('pName').value = '';
+    refresh(); toast('Қосылды.');
+  });
+  $('kSel').addEventListener('change', function () { K = +this.value; refresh(); });
+  $('selA').addEventListener('change', function () { openPair(this.value, $('selB').value); });
+  $('selB').addEventListener('change', function () { openPair($('selA').value, this.value); });
+  $('clearAll').addEventListener('click', function () {
+    if (this.dataset.armed) { docs = []; current = { a: null, b: null }; refresh(); this.textContent = 'Бәрін өшіру'; delete this.dataset.armed; return; }
+    this.dataset.armed = '1'; this.textContent = 'Растау: бәрін өшіру';
+    var b = this; setTimeout(function () { b.textContent = 'Бәрін өшіру'; delete b.dataset.armed; }, 3000);
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-open],[data-del],.seg');
+    if (!t) return;
+    if (t.dataset.open) { var ids = t.dataset.open.split(':'); openPair(ids[0], ids[1], true); }
+    else if (t.dataset.del) { docs = docs.filter(function (d) { return d.id !== +t.dataset.del; }); refresh(); }
+    else jump(t);
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('seg')) { e.preventDefault(); jump(e.target); }
+  });
+
+  function report() {
+    var lines = ['Реферат тексеру нәтижесі (сәйкестік ұзындығы: ' + K + ' сөз)', ''];
+    docs.filter(function (d) { return d.role === 's'; }).forEach(function (d) {
+      lines.push(d.name + ' — түпнұсқалығы ' + pct(d.orig) + (d.top && d.top.p > 0 ? '; ең көбі «' + d.top.other.name + '» жұмысымен: ' + pct(d.top.p) : '') + (d.homo ? '; латын әрпі ' + d.homo + ' сөзде' : ''));
+    });
+    lines.push('', 'Ұқсас жұптар:');
+    pairs.filter(function (p) { return p.segs.length; }).forEach(function (p) {
+      lines.push(p.a.name + ' ↔ ' + p.b.name + ': ' + pct(p.pa) + ' / ' + pct(p.pb) + ', ' + p.segs.length + ' үзінді');
+    });
+    return lines.join('\n');
+  }
+  $('copyReport').addEventListener('click', function () {
+    var txt = report();
+    try {
+      navigator.clipboard.writeText(txt).then(function () { toast('Есеп көшірілді.'); }, function () { fallback(txt); });
+    } catch (e) { fallback(txt); }
+  });
+  function fallback(txt) {
+    $('pText').value = txt; $('pText').focus(); $('pText').select();
+    toast('Көшіру бұғатталды. Есеп мәтін өрісіне қойылды — Ctrl+C басыңыз.');
+  }
+
+  var tt;
+  function toast(msg) { var el = $('toast'); el.textContent = msg; el.hidden = false; clearTimeout(tt); tt = setTimeout(function () { el.hidden = true; }, 3500); }
+
+  SAMPLES.forEach(function (s) { addDoc(s.name, s.role, s.text, true); });
+  refresh();
+})();
+</script>
+</body>
+</html>
