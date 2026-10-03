@@ -106,6 +106,11 @@ tr:last-child td { border-bottom: 0; }
 .seg sup { font-family: var(--f-mono); font-size: 10px; color: var(--pen); font-weight: 700; margin-right: 2px; }
 .c0 { background: var(--m1); } .c1 { background: var(--m2); } .c2 { background: var(--m3); } .c3 { background: var(--m4); } .c4 { background: var(--m5); }
 .seg.flash { outline: 2px solid var(--flash); }
+.seg.para { background: none; border: 2px dashed var(--pen); padding: 0 2px; }
+.seg.para.c0 { border-color: var(--warn); } .seg.para.c1 { border-color: var(--pen); } .seg.para.c2 { border-color: var(--accent); } .seg.para.c3 { border-color: var(--ok); } .seg.para.c4 { border-color: var(--muted); }
+.web { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+.web li { font-family: var(--f-display); line-height: 1.55; }
+.web a { font-family: var(--f-body); font-size: 14px; color: var(--accent); white-space: nowrap; margin-left: 6px; }
 .homo { text-decoration: underline wavy var(--pen); text-underline-offset: 3px; }
 .empty { color: var(--muted); font-style: italic; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 8px; font-size: 14px; }
@@ -124,7 +129,7 @@ tr:last-child td { border-bottom: 0; }
   <header>
     <div class="eyebrow">Мұғалімге арналған құрал</div>
     <h1>Реферат тексеру</h1>
-    <p class="lead">Оқушылардың рефераттарын бір-бірімен және сіз қосқан дереккөздермен (мысалы, Уикипедиядан көшірілген мәтінмен) салыстырады. Әр көшірілген үзінді екі мәтінде де бір нөмірмен және бір түспен белгіленеді. Латын әрпімен жасырылған сөздерді де табады.</p>
+    <p class="lead">Оқушылардың рефераттарын бір-бірімен және сіз қосқан дереккөздермен (мысалы, Уикипедиядан көшірілген мәтінмен) салыстырады. Әр көшірілген үзінді екі мәтінде де бір нөмірмен және бір түспен белгіленеді. Ең қатаң деңгейде 3 сөздік сәйкестікті, жалғауы өзгертілген сөздерді, қайта құрылған сөйлемдерді (перифраз), латын әрпімен және көрінбейтін таңбамен жасырылған сөздерді табады.</p>
   </header>
 
   <section aria-labelledby="h-add">
@@ -155,15 +160,15 @@ tr:last-child td { border-bottom: 0; }
       </form>
     </div>
     <div class="settings">
-      <label class="fld">Сәйкестік ұзындығы
+      <label class="fld">Тексеру деңгейі
         <select id="kSel">
-          <option value="4">4 сөзден бастап (қатаң)</option>
-          <option value="5" selected>5 сөзден бастап</option>
-          <option value="6">6 сөзден бастап</option>
-          <option value="8">8 сөзден бастап (жұмсақ)</option>
+          <option value="max" selected>Ең қатаң</option>
+          <option value="hi">Қатаң</option>
+          <option value="mid">Орташа</option>
+          <option value="lo">Жұмсақ</option>
         </select>
       </label>
-      <p class="note" style="margin:0;max-width:60ch">Қатарынан осынша сөз екі мәтінде бірдей тұрса, көшірме деп есептеледі. Сөздердің бас-кіші әрпі мен тыныс белгілері ескерілмейді.</p>
+      <p class="note" style="margin:0;max-width:66ch" id="levelNote"></p>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -183,7 +188,7 @@ tr:last-child td { border-bottom: 0; }
   <section aria-labelledby="h-pairs">
     <div class="head-row">
       <h2 id="h-pairs">2. Ұқсас жұптар</h2>
-      <div class="legend"><span class="pill ok">0–24% таза</span><span class="pill warn">25–49% күдікті</span><span class="pill bad">50%+ көшірме</span></div>
+      <div class="legend"><span class="pill ok">0–9% таза</span><span class="pill warn">10–29% күдікті</span><span class="pill bad">30%+ көшірме</span></div>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -208,7 +213,23 @@ tr:last-child td { border-bottom: 0; }
       <div class="page"><h3 id="tA"></h3><div class="txt" id="txtA"></div></div>
       <div class="page"><h3 id="tB"></h3><div class="txt" id="txtB"></div></div>
     </div>
-    <p class="note" style="margin:0"><span class="homo">Толқынды қызыл сызық</span> — кирилл сөзінің ішіне латын әрпі қосылған (антиплагиатты алдау тәсілі).</p>
+    <div class="legend">
+      <span><span class="seg c0" style="cursor:default"><sup>1</sup>түсті фон</span> — сөзбе-сөз көшірілген</span>
+      <span><span class="seg para c0" style="cursor:default"><sup>2≈</sup>үзік жиек</span> — сөйлем қайта құрылған (перифраз)</span>
+      <span><span class="homo">толқынды сызық</span> — сөз ішінде латын әрпі не көрінбейтін таңба бар</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-web">
+    <div class="head-row">
+      <h2 id="h-web">4. Интернеттен тексеру</h2>
+      <span class="note">Сайт интернетті өзі іздемейді. Мына сөйлемдерді Google-дан дәл іздеп көріңіз.</span>
+    </div>
+    <div class="cmp-head">
+      <select id="selW" aria-label="Тексерілетін жұмыс"></select>
+    </div>
+    <p class="note" style="margin:0">Ешбір жұмыспен сәйкес келмеген ең ұзын сөйлемдер. Іздеу нәтижесінде дәл сол мәтін шықса, оны көшіріп, жоғарыда «Дереккөз» түрімен қосыңыз. Сонда сайт көшірілген жерлерін белгілеп береді.</p>
+    <ol class="web" id="webList"></ol>
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -234,72 +255,144 @@ tr:last-child td { border-bottom: 0; }
       '\n\nФотосинтездің арқасында атмосферадағы оттегінің мөлшері сақталады, ал барлық тірі ағзалар қоректік заттармен қамтамасыз етіледі. Менің ойымша, фотосинтезді зерттеу ауыл шаруашылығында өнімділікті арттыруға көмектеседі.' },
     { name: 'Бекова Айгерім, 9А', role: 's', text:
       'Өсімдіктер тіршілігінің негізі — фотосинтез. Мен бұл рефератта оның маңызын қарастырамын.\n\n' + COMMON +
+      ' Барлық тірі ағзалар фотосинтездің арқасында қоректік заттармен қамтамасыз етіледі, атмосферадағы оттегінің мөлшері де сақталып отырады.' +
       '\n\nСонымен қатар өсімдіктер ауаны тазартып, климатты реттеуге қатысады. Қалада ағаш көп отырғызылса, адамдардың денсаулығы жақсарады деп ойлаймын.' },
     { name: 'Серікұлы Нұрлан, 9Ә', role: 's', text:
-      'Мен фотосинтез тақырыбын таңдадым, себебі бұл биологиядағы ең қызықты құбылыс. Жапырақтың түсі жасыл болуы хлорофиллге байланысты.\n\n' + latinize(WIKI) +
+      'Мен фотосинтез тақырыбын таңдадым, себебі бұл биологиядағы ең қызықты құбылыс. Жапырақтың түсі жасыл болуы хлорофиллге байланысты.\n\n' + latinize(WIKI.replace('биосферадағы', 'био\u200Bсферадағы')) +
       '\n\nМектеп ауласында біз бұршақ өсіріп, жарықсыз қалған өскіннің сарғайып кеткенін байқадық. Бұл тәжірибе жарықтың маңызын көрсетті.' },
     { name: 'Уикипедия: Фотосинтез', role: 'r', text:
       'Фотосинтез — жарық энергиясының әсерінен хлорофилл қатысуымен бейорганикалық заттардан органикалық заттардың түзілу процесі. ' + WIKI }
   ];
 
   /* ---------- күй ---------- */
-  var docs = [];          /* {id, name, role, text, toks, homo, sample} */
+  var docs = [];          /* {id, name, role, text, toks, sents, homo, hidden, sample} */
   var nextId = 1;
-  var K = 5;
+  /* k — қатарынан неше сөз; stem — жалғауды ескермеу; para — перифраз шегі (0 = өшірулі) */
+  var LEVELS = {
+    max: { k: 3, stem: true,  para: 0.45, note: 'Қатарынан 3 сөз сәйкес келсе де белгіленеді. Жалғауы өзгертілген сөздер бір сөз деп есептеледі («жасушаларда» = «жасушасы»). Сөздердің орны ауыстырылып, сөйлем қайта құрылса да табады.' },
+    hi:  { k: 4, stem: true,  para: 0.55, note: 'Қатарынан 4 сөз. Жалғаулар ескерілмейді, қайта құрылған сөйлемдердің көбін табады.' },
+    mid: { k: 5, stem: false, para: 0,    note: 'Қатарынан 5 сөз сөзбе-сөз сәйкес келсе ғана белгіленеді.' },
+    lo:  { k: 8, stem: false, para: 0,    note: 'Тек ұзын (8 сөзден асатын) сөзбе-сөз көшірмелер.' }
+  };
+  var L = LEVELS.max, K = L.k;
   var pairs = [];         /* {a, b, segs, pa, pb} */
   var current = { a: null, b: null };
 
   /* ---------- мәтінді сөздерге бөлу ---------- */
-  var WORD = /[\p{L}\p{N}]+/gu;
-  var HAS_CYR = /[Ѐ-ӿ]/, HAS_LAT = /[a-z]/i;
+  var HIDDEN = /[­​-‏⁠﻿]/g;
+  var WORD = /[\p{L}\p{N}­​-‏⁠﻿]+/gu;
+  var HAS_CYR = /[Ѐ-ӿ]/, HAS_ALIEN = /[a-zͰ-Ͽ]/;
+  var GREEK_TO_CYR = { 'α': 'а', 'ο': 'о', 'ε': 'е', 'ρ': 'р', 'κ': 'к', 'τ': 'т', 'υ': 'у', 'χ': 'х', 'ι': 'і' };
+  /* Бұл сөздер жалғыз өзі көшірме саналмайды: 3 сөздік үзіндіде кемі 2 мағыналы сөз болуы керек. */
+  var STOP = new Set(('және мен бен пен да де та те бұл ол осы сол бір үшін бойынша арқылы болып табылады болады деп ал бірақ ' +
+    'сонымен қатар яғни өте көп әр барлық біз олар оның олардың сондықтан егер ретінде туралы сияқты ғана тек ең қалай не кейін ' +
+    'дейін соң немесе әрі тағы бар жоқ еді екен және де ма ме ба бе па пе ғой қой мұнда онда кез келген ' +
+    'и в во на с со по что это как для не из к а но о об от у же то все так или его её их был была было были').split(' '));
+  function stemOf(w) { return /^\d+$/.test(w) ? w : w.slice(0, 5); }
+
   function tokenize(text) {
-    var toks = [], homo = 0, m;
+    var toks = [], homo = 0, hidden = 0, m;
     WORD.lastIndex = 0;
     while ((m = WORD.exec(text))) {
       var raw = m[0], w = raw.toLowerCase().replace(/ё/g, 'е'), mixed = false;
-      if (HAS_CYR.test(w) && HAS_LAT.test(w)) {
+      if (HIDDEN.test(w)) { hidden++; mixed = true; w = w.replace(HIDDEN, ''); }
+      HIDDEN.lastIndex = 0;
+      if (!w) continue;
+      if (HAS_CYR.test(w) && HAS_ALIEN.test(w)) {
         mixed = true; homo++;
-        w = w.replace(/[a-z]/g, function (c) { return LATIN_TO_CYR[c] || c; });
+        w = w.replace(/[a-zͰ-Ͽ]/g, function (c) { return LATIN_TO_CYR[c] || GREEK_TO_CYR[c] || c; });
       }
-      toks.push({ w: w, s: m.index, e: m.index + raw.length, mixed: mixed });
+      toks.push({ w: w, st: stemOf(w), stop: STOP.has(w), s: m.index, e: m.index + raw.length, mixed: mixed });
     }
-    return { toks: toks, homo: homo };
+    return { toks: toks, homo: homo, hidden: hidden };
+  }
+
+  /* Сөйлемдер: перифраз іздеу үшін әр сөйлемнің мағыналы түбірлер жиыны. */
+  function sentences(text, toks) {
+    var out = [], from = 0;
+    for (var i = 0; i < toks.length; i++) {
+      var gap = i + 1 < toks.length ? text.slice(toks[i].e, toks[i + 1].s) : '.';
+      if (/[.!?…;\n]/.test(gap)) {
+        var set = new Set();
+        for (var q = from; q <= i; q++) if (!toks[q].stop && toks[q].w.length > 2) set.add(toks[q].st);
+        out.push({ from: from, to: i, set: set });
+        from = i + 1;
+      }
+    }
+    return out;
   }
 
   function addDoc(name, role, text, sample) {
     text = String(text || '').replace(/\r\n?/g, '\n').trim();
     if (!text) { toast('«' + name + '» ішінде мәтін табылмады.'); return; }
     var t = tokenize(text);
-    docs.push({ id: nextId++, name: name, role: role, text: text, toks: t.toks, homo: t.homo, sample: !!sample });
+    docs.push({ id: nextId++, name: name, role: role, text: text, toks: t.toks, sents: sentences(text, t.toks),
+                homo: t.homo, hidden: t.hidden, sample: !!sample });
   }
 
   /* ---------- салыстыру ---------- */
+  function keyOf(t) { return L.stem ? t.st : t.w; }
   function index(doc) {
-    if (doc._k === K) return doc._idx;
+    var tag = K + (L.stem ? 's' : 'w');
+    if (doc._k === tag) return doc._idx;
     var idx = new Map(), t = doc.toks;
     for (var i = 0; i + K <= t.length; i++) {
-      var key = t[i].w; for (var j = 1; j < K; j++) key += ' ' + t[i + j].w;
+      var key = keyOf(t[i]); for (var j = 1; j < K; j++) key += ' ' + keyOf(t[i + j]);
       var arr = idx.get(key); if (arr) arr.push(i); else idx.set(key, [i]);
     }
-    doc._k = K; doc._idx = idx; return idx;
+    doc._k = tag; doc._idx = idx; return idx;
+  }
+  function meaningful(toks, from, len) {
+    var n = 0; for (var q = from; q < from + len; q++) if (!toks[q].stop) n++;
+    return n >= Math.min(2, len);
   }
   function compare(A, B) {
     var idxB = index(B), ta = A.toks, tb = B.toks, segs = [], i = 0;
     while (i + K <= ta.length) {
-      var key = ta[i].w; for (var j = 1; j < K; j++) key += ' ' + ta[i + j].w;
+      var key = keyOf(ta[i]); for (var j = 1; j < K; j++) key += ' ' + keyOf(ta[i + j]);
       var hits = idxB.get(key), best = 0, bestJ = -1;
       if (hits) {
         for (var h = 0; h < hits.length && h < 60; h++) {
           var bj = hits[h], m = K;
-          while (i + m < ta.length && bj + m < tb.length && ta[i + m].w === tb[bj + m].w) m++;
+          while (i + m < ta.length && bj + m < tb.length && keyOf(ta[i + m]) === keyOf(tb[bj + m])) m++;
           if (m > best) { best = m; bestJ = bj; }
         }
       }
-      if (best >= K) { segs.push({ a: i, b: bestJ, len: best }); i += best; } else i++;
+      if (best >= K && meaningful(ta, i, best)) { segs.push({ a: i, la: best, b: bestJ, lb: best, t: 'x' }); i += best; } else i++;
     }
-    var covB = new Uint8Array(tb.length), nb = 0, na = 0;
-    segs.forEach(function (s) { na += s.len; for (var q = s.b; q < s.b + s.len; q++) if (!covB[q]) { covB[q] = 1; nb++; } });
-    return { segs: segs, pa: ta.length ? na / ta.length : 0, pb: tb.length ? nb / tb.length : 0, words: na };
+    var covA = new Uint8Array(ta.length), covB = new Uint8Array(tb.length);
+    function cover(s) {
+      for (var q = s.a; q < s.a + s.la; q++) covA[q] = 1;
+      for (q = s.b; q < s.b + s.lb; q++) covB[q] = 1;
+    }
+    segs.forEach(cover);
+
+    /* Перифраз: сөзбе-сөз сәйкестігі аз сөйлемдерді түбірлер жиыны бойынша салыстыру. */
+    if (L.para) {
+      var used = new Set();
+      A.sents.forEach(function (sa) {
+        if (sa.set.size < 4) return;
+        var c = 0; for (var q = sa.from; q <= sa.to; q++) c += covA[q];
+        if (c / (sa.to - sa.from + 1) > 0.5) return;
+        var best = 0, bestS = null;
+        B.sents.forEach(function (sb, n) {
+          if (sb.set.size < 4 || used.has(n)) return;
+          var inter = 0; sa.set.forEach(function (x) { if (sb.set.has(x)) inter++; });
+          var score = 2 * inter / (sa.set.size + sb.set.size);
+          if (inter >= 4 && score > best) { best = score; bestS = n; }
+        });
+        if (bestS !== null && best >= L.para) {
+          var sb = B.sents[bestS]; used.add(bestS);
+          var seg = { a: sa.from, la: sa.to - sa.from + 1, b: sb.from, lb: sb.to - sb.from + 1, t: 'p' };
+          segs.push(seg); cover(seg);
+        }
+      });
+      segs.sort(function (x, y) { return x.a - y.a; });
+    }
+    var na = 0, nb = 0, q2;
+    for (q2 = 0; q2 < covA.length; q2++) na += covA[q2];
+    for (q2 = 0; q2 < covB.length; q2++) nb += covB[q2];
+    return { segs: segs, covA: covA, covB: covB, pa: ta.length ? na / ta.length : 0, pb: tb.length ? nb / tb.length : 0, words: na };
   }
 
   function analyze() {
@@ -310,9 +403,8 @@ tr:last-child td { border-bottom: 0; }
       if (A.role === 'r' && B.role === 'r') continue;
       var r = compare(A, B);
       r.a = A; r.b = B; pairs.push(r);
-      r.segs.forEach(function (s) {
-        for (var q = 0; q < s.len; q++) { A.cov[s.a + q] = 1; B.cov[s.b + q] = 1; }
-      });
+      for (var q = 0; q < r.covA.length; q++) if (r.covA[q]) A.cov[q] = 1;
+      for (q = 0; q < r.covB.length; q++) if (r.covB[q]) B.cov[q] = 1;
       if (!A.top || r.pa > A.top.p) A.top = { p: r.pa, other: B };
       if (!B.top || r.pb > B.top.p) B.top = { p: r.pb, other: A };
     }
@@ -326,7 +418,7 @@ tr:last-child td { border-bottom: 0; }
   /* ---------- көрсету ---------- */
   function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function pct(v) { return Math.round(v * 100) + '%'; }
-  function level(copied) { return copied >= 0.5 ? 'bad' : copied >= 0.25 ? 'warn' : 'ok'; }
+  function level(copied) { return copied >= 0.3 ? 'bad' : copied >= 0.1 ? 'warn' : 'ok'; }
   function docName(d) { return esc(d.name) + (d.role === 'r' ? '<span class="src-tag">дереккөз</span>' : ''); }
   var $ = function (id) { return document.getElementById(id); };
 
@@ -334,6 +426,7 @@ tr:last-child td { border-bottom: 0; }
     var rows = docs.map(function (d) {
       var lv = level(1 - d.orig), flags = [];
       if (d.homo) flags.push('<span class="flag">Латын әрпі: ' + d.homo + ' сөзде</span>');
+      if (d.hidden) flags.push('<span class="flag">Көрінбейтін таңба: ' + d.hidden + ' сөзде</span>');
       var orig = d.role === 'r' ? '<span class="note">тексерілмейді</span>' :
         '<div class="bar"><i><b class="' + lv + '" style="width:' + Math.round(d.orig * 100) + '%"></b></i><span class="num">' + pct(d.orig) + '</span></div>';
       var top = d.top && d.top.p > 0 ? '<button class="link" data-open="' + d.id + ':' + d.top.other.id + '">' + esc(d.top.other.name) + '</button> <span class="pill ' + level(d.top.p) + ' num">' + pct(d.top.p) + '</span>' : '<span class="note">сәйкестік жоқ</span>';
@@ -359,23 +452,43 @@ tr:last-child td { border-bottom: 0; }
   function fillSelects() {
     var opts = docs.map(function (d) { return '<option value="' + d.id + '">' + esc(d.name) + (d.role === 'r' ? ' (дереккөз)' : '') + '</option>'; }).join('');
     $('selA').innerHTML = opts; $('selB').innerHTML = opts;
+    var keep = $('selW').value;
+    $('selW').innerHTML = docs.filter(function (d) { return d.role === 's'; }).map(function (d) { return '<option value="' + d.id + '">' + esc(d.name) + '</option>'; }).join('');
+    if (find(keep)) $('selW').value = keep;
+  }
+
+  function renderWeb(id) {
+    var d = find(id), list = $('webList');
+    if (!d) { list.innerHTML = '<li class="empty">Оқушы жұмысы жоқ.</li>'; return; }
+    var cands = d.sents.map(function (s) {
+      var n = s.to - s.from + 1, c = 0;
+      for (var q = s.from; q <= s.to; q++) c += d.cov[q];
+      return { s: s, n: n, free: c / n < 0.3 };
+    }).filter(function (x) { return x.free && x.n >= 6; })
+      .sort(function (x, y) { return y.n - x.n; }).slice(0, 8);
+    list.innerHTML = cands.map(function (x) {
+      var s = x.s, shown = d.text.slice(d.toks[s.from].s, d.toks[s.to].e).replace(HIDDEN, '');
+      /* Іздеуге латын әрпі мен жасырын таңбадан тазартылған нұсқасы жіберіледі. */
+      var q = d.toks.slice(s.from, Math.min(s.to + 1, s.from + 32)).map(function (t) { return t.w; }).join(' ');
+      return '<li>' + esc(shown) + ' <a href="https://www.google.com/search?q=' + encodeURIComponent('"' + q + '"') + '" target="_blank" rel="noopener">Google-да іздеу ↗</a></li>';
+    }).join('') || '<li class="empty">Тексерілмеген ұзын сөйлем қалмады.</li>';
   }
 
   function markup(doc, segs, side) {
     /* side: 'a' — сегменттің a-бөлігі, 'b' — b-бөлігі */
     var spans = segs.map(function (s, n) {
       var st = side === 'a' ? s.a : s.b;
-      return { from: st, to: st + s.len - 1, n: n };
+      return { from: st, to: st + (side === 'a' ? s.la : s.lb) - 1, n: n, p: s.t === 'p' };
     }).sort(function (x, y) { return x.from - y.from; });
     var t = doc.toks, text = doc.text, out = '', pos = 0, si = 0, i = 0;
-    function word(k) { var tk = t[k], w = esc(text.slice(tk.s, tk.e)); return tk.mixed ? '<span class="homo" title="Латын әрпі бар">' + w + '</span>' : w; }
+    function word(k) { var tk = t[k], w = esc(text.slice(tk.s, tk.e)); return tk.mixed ? '<span class="homo" title="Латын әрпі не көрінбейтін таңба бар">' + w + '</span>' : w; }
     while (i < t.length) {
       while (si < spans.length && spans[si].to < i) si++;
       var sp = spans[si];
       if (sp && sp.from <= i) {
         out += esc(text.slice(pos, t[i].s));
         var end = sp.to;
-        out += '<span class="seg c' + (sp.n % 5) + '" tabindex="0" role="button" id="' + side + '-' + sp.n + '" data-seg="' + sp.n + '" data-side="' + side + '"><sup>' + (sp.n + 1) + '</sup>';
+        out += '<span class="seg' + (sp.p ? ' para' : '') + ' c' + (sp.n % 5) + '" tabindex="0" role="button" id="' + side + '-' + sp.n + '" data-seg="' + sp.n + '" data-side="' + side + '"><sup>' + (sp.n + 1) + (sp.p ? '≈' : '') + '</sup>';
         for (var k = i; k <= end; k++) { out += word(k); if (k < end) out += esc(text.slice(t[k].e, t[k + 1].s)); }
         out += '</span>';
         pos = t[end].e; i = end + 1; si++;
@@ -394,13 +507,15 @@ tr:last-child td { border-bottom: 0; }
     current = { a: A.id, b: B.id };
     $('selA').value = A.id; $('selB').value = B.id;
     var r = A === B ? { segs: [], pa: 0, pb: 0, words: 0 } : compare(A, B);
+    $('selW').value = A.role === 's' ? A.id : $('selW').value;
     $('tA').innerHTML = '<span>' + docName(A) + '</span><span class="pill ' + level(r.pa) + ' num">' + pct(r.pa) + ' сәйкес</span>';
     $('tB').innerHTML = '<span>' + docName(B) + '</span><span class="pill ' + level(r.pb) + ' num">' + pct(r.pb) + ' сәйкес</span>';
     $('txtA').innerHTML = markup(A, r.segs, 'a');
     $('txtB').innerHTML = markup(B, r.segs, 'b');
-    var longest = r.segs.reduce(function (m, s) { return Math.max(m, s.len); }, 0);
+    var longest = r.segs.reduce(function (m, s) { return s.t === 'x' ? Math.max(m, s.la) : m; }, 0);
+    var nPara = r.segs.filter(function (s) { return s.t === 'p'; }).length;
     $('cmpStats').innerHTML = A === B ? 'Екі түрлі жұмыс таңдаңыз.' :
-      '<span>Ортақ үзінді: <b class="num">' + r.segs.length + '</b></span><span>Ортақ сөз: <b class="num">' + r.words + '</b></span><span>Ең ұзын үзінді: <b class="num">' + longest + '</b> сөз</span>';
+      '<span>Сөзбе-сөз үзінді: <b class="num">' + (r.segs.length - nPara) + '</b></span><span>Перифраз: <b class="num">' + nPara + '</b></span><span>Ортақ сөз: <b class="num">' + r.words + '</b></span><span>Ең ұзын үзінді: <b class="num">' + longest + '</b> сөз</span>';
     if (scroll) $('cmp').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
 
@@ -419,6 +534,7 @@ tr:last-child td { border-bottom: 0; }
     else if (top) openPair(top.a.id, top.b.id);
     else if (docs.length > 1) openPair(docs[0].id, docs[1].id);
     else openPair(docs[0] && docs[0].id, docs[1] && docs[1].id);
+    renderWeb($('selW').value);
   }
 
   /* ---------- файл оқу ---------- */
@@ -480,7 +596,9 @@ tr:last-child td { border-bottom: 0; }
     $('pText').value = ''; $('pName').value = '';
     refresh(); toast('Қосылды.');
   });
-  $('kSel').addEventListener('change', function () { K = +this.value; refresh(); });
+  function setLevel(v) { L = LEVELS[v]; K = L.k; $('levelNote').textContent = L.note; }
+  $('kSel').addEventListener('change', function () { setLevel(this.value); refresh(); });
+  $('selW').addEventListener('change', function () { renderWeb(this.value); });
   $('selA').addEventListener('change', function () { openPair(this.value, $('selB').value); });
   $('selB').addEventListener('change', function () { openPair($('selA').value, this.value); });
   $('clearAll').addEventListener('click', function () {
@@ -500,9 +618,9 @@ tr:last-child td { border-bottom: 0; }
   });
 
   function report() {
-    var lines = ['Реферат тексеру нәтижесі (сәйкестік ұзындығы: ' + K + ' сөз)', ''];
+    var lines = ['Реферат тексеру нәтижесі (деңгейі: ' + $('kSel').selectedOptions[0].text + ')', ''];
     docs.filter(function (d) { return d.role === 's'; }).forEach(function (d) {
-      lines.push(d.name + ' — түпнұсқалығы ' + pct(d.orig) + (d.top && d.top.p > 0 ? '; ең көбі «' + d.top.other.name + '» жұмысымен: ' + pct(d.top.p) : '') + (d.homo ? '; латын әрпі ' + d.homo + ' сөзде' : ''));
+      lines.push(d.name + ' — түпнұсқалығы ' + pct(d.orig) + (d.top && d.top.p > 0 ? '; ең көбі «' + d.top.other.name + '» жұмысымен: ' + pct(d.top.p) : '') + (d.homo ? '; латын әрпі ' + d.homo + ' сөзде' : '') + (d.hidden ? '; көрінбейтін таңба ' + d.hidden + ' сөзде' : ''));
     });
     lines.push('', 'Ұқсас жұптар:');
     pairs.filter(function (p) { return p.segs.length; }).forEach(function (p) {
@@ -525,6 +643,7 @@ tr:last-child td { border-bottom: 0; }
   function toast(msg) { var el = $('toast'); el.textContent = msg; el.hidden = false; clearTimeout(tt); tt = setTimeout(function () { el.hidden = true; }, 3500); }
 
   SAMPLES.forEach(function (s) { addDoc(s.name, s.role, s.text, true); });
+  setLevel($('kSel').value);
   refresh();
 })();
 </script>
