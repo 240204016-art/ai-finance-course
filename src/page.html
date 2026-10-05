@@ -1,4 +1,4 @@
-<title>Биология ҰБТ сынағы</title>
+<title>Наурыз ҰБТ слив</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap">
@@ -249,14 +249,14 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
     <div class="start-head">
       <div class="rule"></div>
       <p class="eyebrow">Ұлттық бірыңғай тестілеу · Бейіндік пән</p>
-      <h1>Биология сынағы</h1>
+      <h1>Наурыз ҰБТ слив</h1>
       <p class="lede" id="home-lede"></p>
     </div>
 
     <div class="sections">
-      <div class="sec"><span class="n">1–30</span><span class="d">Бір дұрыс жауапты таңдау</span><span class="p">1 балл</span></div>
-      <div class="sec"><span class="n">31–35</span><span class="d">Сәйкестендіру — әр жұп бөлек бағаланады</span><span class="p">2 балл</span></div>
-      <div class="sec"><span class="n">36–40</span><span class="d">Бірнеше дұрыс жауап — ҰБТ ережесімен</span><span class="p">2 балл</span></div>
+      <div class="sec"><span class="n" id="sec-single">30 сұрақ</span><span class="d">Бір дұрыс жауапты таңдау</span><span class="p">1 балл</span></div>
+      <div class="sec"><span class="n" id="sec-match">5 сұрақ</span><span class="d">Сәйкестендіру — әр жұп бөлек бағаланады</span><span class="p">2 балл</span></div>
+      <div class="sec"><span class="n" id="sec-multi">5 сұрақ</span><span class="d">Бірнеше дұрыс жауап — ҰБТ ережесімен</span><span class="p">2 балл</span></div>
     </div>
 
     <div class="panel setup">
@@ -1241,7 +1241,29 @@ window.addEventListener('beforeunload', persist);
 var KEYS_NOTE = ' Пернетақтамен де жұмыс істейді: <kbd>1</kbd>–<kbd>6</kbd> нұсқаны таңдайды, '+
   '<kbd>←</kbd> <kbd>→</kbd> сұрақтарды ауыстырады.';
 
+/* Бөлім санын деректің өзінен аламыз: нұсқалардың құрылымы әртүрлі
+   болса (мысалы сәйкестендіру соңында тұрса), жазу жалған болмасын. */
+function fillSections(){
+  var kinds = {single:[], match:[], multi:[]};
+  TESTS.forEach(function(t){
+    var n = {single:0, match:0, multi:0};
+    t.questions.forEach(function(q){ if(n[q.type] !== undefined) n[q.type]++; });
+    Object.keys(kinds).forEach(function(k){
+      if(kinds[k].indexOf(n[k]) < 0) kinds[k].push(n[k]);
+    });
+  });
+  function label(a){
+    a.sort(function(x, y){ return x - y; });
+    var lo = a[0], hi = a[a.length - 1];
+    return (lo === hi ? lo : lo + '–' + hi) + ' сұрақ';
+  }
+  $('sec-single').textContent = label(kinds.single);
+  $('sec-match').textContent  = label(kinds.match);
+  $('sec-multi').textContent  = label(kinds.multi);
+}
+
 function start(){
+  fillSections();
   $('privacy').innerHTML = (COLLECT
     ? 'Тест аяқталғанда аты-жөніңіз, сыныбыңыз және нәтижеңіз мұғалімге жіберіледі. Прогресіңіз осы браузерде сақталады.'
     : 'Нәтижелер тек осы браузерде сақталады — сервер жоқ, ешқандай дерек сыртқа жіберілмейді.') + KEYS_NOTE;
