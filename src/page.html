@@ -1,4 +1,4 @@
-<title>Наурыз ҰБТ слив</title>
+<title>Биология тест сұрақтары</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap">
@@ -75,6 +75,24 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .sections{display:flex;flex-direction:column;gap:10px}
 .test-list{display:flex;flex-direction:column;gap:10px}
+.sec-card{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;
+  text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px;box-shadow:var(--shadow)}
+.sec-card:hover:not([disabled]){border-color:var(--accent);transform:translateY(-1px)}
+.sec-card[disabled]{opacity:.5;cursor:not-allowed}
+.sec-ic{width:40px;height:40px;border-radius:10px;background:var(--accent-tint);color:var(--accent);
+  display:grid;place-items:center;font-weight:700;font-size:16px;flex:none;
+  font-family:var(--serif)}
+.sec-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sec-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink)}
+.sec-meta{display:flex;gap:7px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.sec-go{color:var(--muted);font-size:18px}
+.backrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.backbtn{display:inline-flex;align-items:center;gap:7px;background:none;border:none;padding:4px 0;
+  font-size:14px;font-weight:700;color:var(--accent)}
+.backbtn:hover{text-decoration:underline}
+.backrow .cur{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink)}
+.backrow .cnt{font-size:12.5px;color:var(--muted)}
 .test-card{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;text-align:left;
   background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:14px 16px;
   box-shadow:var(--shadow);transition:border-color .12s,transform .12s}
@@ -249,7 +267,7 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
     <div class="start-head">
       <div class="rule"></div>
       <p class="eyebrow">Ұлттық бірыңғай тестілеу · Бейіндік пән</p>
-      <h1>Наурыз ҰБТ слив</h1>
+      <h1>Биология тест сұрақтары</h1>
       <p class="lede" id="home-lede"></p>
     </div>
 
@@ -332,7 +350,7 @@ kbd{font-family:var(--sans);font-size:11.5px;background:var(--surface-2);border:
     </div>
 
     <div class="start-head" style="gap:6px">
-      <p class="eyebrow">Нұсқаны таңдаңыз</p>
+      <p class="eyebrow" id="pick-eyebrow">Бөлімді таңдаңыз</p>
       <p class="hint" id="who-line" hidden></p>
     </div>
     <div class="test-list" id="test-list"></div>
@@ -1159,11 +1177,19 @@ function restart(){
   T=t; begin(buildSession());
 }
 
+var curGroup = null;      /* таңдалған бөлім; null болса — бөлім тізімі */
+var GROUPS = (DATA.groups && DATA.groups.length) ? DATA.groups : [null];
+function inGroup(g){
+  return TESTS.filter(function(t){ return g===null || t.group===g; });
+}
+
 function renderHome(){
   var list=$('test-list');
   var qn=TESTS.reduce(function(a,t){ return a+t.questions.length; },0);
-  $('home-lede').textContent = TESTS.length+' нұсқа, барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен '+
-    'жеке нәтижесі болады — кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
+  $('home-lede').textContent =
+    (GROUPS.length > 1 ? GROUPS.length+' бөлім, '+TESTS.length+' нұсқа' : TESTS.length+' нұсқа')+
+    ', барлығы '+qn+' сұрақ. Әр нұсқаның өз таймері мен жеке нәтижесі болады — '+
+    'кез келгенін таңдап, кез келген уақытта жалғастыра аласыз.';
   $('who-panel').hidden = !COLLECT;
   var ready = !COLLECT || (signedIn() && profileDone());
   var w=$('who-line');
@@ -1174,7 +1200,64 @@ function renderHome(){
       : 'Нұсқалар мұғалім рұқсат бергеннен кейін ашылады.';
   }
   list.innerHTML='';
-  TESTS.forEach(function(t, k){
+  /* Алдымен бөлім таңдалады, содан кейін сол бөлімнің нұсқалары
+     шығады. Бөлім біреу ғана болса, таңдаудың мәні жоқ — нұсқалар
+     бірден көрінеді. */
+  var only = GROUPS.length === 1 ? GROUPS[0] : null;
+  var show = only || curGroup;
+
+  if(!show){
+    $('pick-eyebrow').textContent = 'Бөлімді таңдаңыз';
+    GROUPS.forEach(function(g){
+      var mine = inGroup(g);
+      if(mine.length) list.appendChild(secCard(g, mine));
+    });
+    return;
+  }
+
+  $('pick-eyebrow').textContent = 'Нұсқаны таңдаңыз';
+  if(!only){
+    var bar = document.createElement('div');
+    bar.className = 'backrow';
+    var bb = document.createElement('button');
+    bb.type = 'button'; bb.className = 'backbtn';
+    bb.innerHTML = '\u2190 Бөлімдер';
+    bb.addEventListener('click', function(){ curGroup = null; renderHome(); });
+    bar.appendChild(bb);
+    var mineN = inGroup(show);
+    var span = document.createElement('span');
+    span.className = 'cur'; span.textContent = show;
+    var cnt = document.createElement('span');
+    cnt.className = 'cnt';
+    cnt.textContent = mineN.length + ' нұсқа · ' +
+      mineN.reduce(function(a,t){ return a+t.questions.length; },0) + ' сұрақ';
+    bar.appendChild(span); bar.appendChild(cnt);
+    list.appendChild(bar);
+  }
+  inGroup(show).forEach(function(t){ list.appendChild(card(t, TESTS.indexOf(t))); });
+
+  function secCard(g, mine){
+    var qn = mine.reduce(function(a,t){ return a+t.questions.length; },0);
+    var done = mine.filter(function(t){ return load(keyLast(t.slug)); }).length;
+    var busy = mine.filter(function(t){ return load(keyState(t.slug)); }).length;
+    var meta = '<span>'+mine.length+' нұсқа</span><span>·</span><span>'+qn+' сұрақ</span>';
+    if(busy) meta += '<span class="chip resume">'+busy+' жалғасады</span>';
+    if(done) meta += '<span class="chip done">'+done+' тапсырылған</span>';
+    var b = document.createElement('button');
+    b.type='button'; b.className='sec-card';
+    b.innerHTML = '<span class="sec-ic">'+esc(g.slice(0,1))+'</span>'+
+      '<span class="sec-main"><span class="sec-title">'+esc(g)+'</span>'+
+      '<span class="sec-meta">'+meta+'</span></span>'+
+      '<span class="sec-go" aria-hidden="true">\u2192</span>';
+    if(!ready) b.disabled = true;
+    b.addEventListener('click', function(){
+      if(!ready){ openTest(-1); return; }
+      curGroup = g; renderHome();
+    });
+    return b;
+  }
+
+  function card(t, k){
     var st=load(keyState(t.slug)), last=load(keyLast(t.slug));
     var imgs=t.questions.reduce(function(a,q){
       return a + (q.images?q.images.length:0) + ((q.context&&q.context.images)?q.context.images.length:0);
@@ -1192,11 +1275,12 @@ function renderHome(){
       '<span class="tc-go" aria-hidden="true">→</span>';
     if(!ready) b.disabled = true;
     b.addEventListener('click', function(){ openTest(k); });
-    list.appendChild(b);
-  });
+    return b;
+  }
 }
 
 function openTest(k){
+  /* k === -1: тек «кіру керек» хабарын шығару үшін шақырылады */
   if(COLLECT && !(signedIn() && profileDone())){
     if(pending && !$('st-wait').hidden){
       idErr('Мұғалім әлі рұқсат берген жоқ — сәл күте тұрыңыз.');
@@ -1206,6 +1290,7 @@ function openTest(k){
     }
     return;
   }
+  if(k < 0) return;
   T = TESTS[k];
   enterTest();
 }
