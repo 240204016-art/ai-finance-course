@@ -49,6 +49,8 @@ def load_tests():
             if field not in data:
                 raise SystemExit(f"{path.name}: '{field}' өрісі жоқ")
         data["total"] = sum(q["points"] for q in data["questions"])
+        # «Папка»: group жазылмаса, негізгі жинақтың атына түседі
+        data["group"] = str(data.get("group") or TITLE).strip() or TITLE
         check(path.name, data)
         tests.append(data)
     if not tests:
@@ -98,7 +100,11 @@ def main() -> None:
     tests = load_tests()
     cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
     config = {"submitUrl": cfg.get("submitUrl", "").strip()}
-    payload = {"title": TITLE, "tests": tests, "config": config}
+    groups = []
+    for t in tests:
+        if t["group"] not in groups:
+            groups.append(t["group"])
+    payload = {"title": TITLE, "tests": tests, "groups": groups, "config": config}
     blob = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if "</script" in blob.lower():
         raise SystemExit("деректер ішінде </script> кездесті")
@@ -130,8 +136,11 @@ def main() -> None:
     qn = sum(len(t["questions"]) for t in tests)
     pts = sum(t["total"] for t in tests)
     print(f"{len(tests)} тест, {qn} сұрақ, {pts} балл -> index.html, artifact.html")
-    for t in tests:
-        print(f"  {t['title']}: {len(t['questions'])} сұрақ, {t['total']} балл")
+    for g in groups:
+        print(f"  [{g}]")
+        for t in tests:
+            if t["group"] == g:
+                print(f"    {t['title']}: {len(t['questions'])} сұрақ, {t['total']} балл")
     print("нәтиже жинау: " + (config["submitUrl"] or "өшірулі (config.json бос)"))
     if dash_src.exists():
         print("дашборд: dashboard.html")
