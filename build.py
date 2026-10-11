@@ -70,8 +70,10 @@ def check(name, data):
                 if it["answer"] not in ids:
                     raise SystemExit(f"{where}: '{it['text']}' жауабы нұсқалар арасында жоқ")
         elif q["type"] == "multi":
-            if len(q.get("answer", [])) < 2:
-                raise SystemExit(f"{where}: бірнеше жауапта кемінде 2 нұсқа болуы керек")
+            # Бір ғана дұрыс жауабы бар «бірнеше жауап» сұрағы да кездеседі —
+            # ҰБТ ережесінде ол қарастырылған (1 дұрысты белгілесе 2 балл).
+            if not q.get("answer"):
+                raise SystemExit(f"{where}: бірнеше жауапта кемінде 1 нұсқа болуы керек")
             for a in q["answer"]:
                 if a not in ids:
                     raise SystemExit(f"{where}: {a} нұсқасы жоқ")
