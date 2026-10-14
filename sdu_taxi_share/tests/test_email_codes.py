@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from config import Settings
@@ -83,6 +85,6 @@ def test_db_path_uses_railway_volume(monkeypatch, tmp_path):
     from config import load_settings
     monkeypatch.delenv("DB_PATH", raising=False)
     monkeypatch.setenv("RAILWAY_VOLUME_MOUNT_PATH", "/data")
-    assert str(load_settings(tmp_path / "none.env").db_path) == "/data/bot.db"
+    assert load_settings(tmp_path / "none.env").db_path == Path("/data") / "bot.db"
     monkeypatch.setenv("DB_PATH", "/x/my.db")
-    assert str(load_settings(tmp_path / "none.env").db_path) == "/x/my.db"
+    assert load_settings(tmp_path / "none.env").db_path == Path("/x/my.db")

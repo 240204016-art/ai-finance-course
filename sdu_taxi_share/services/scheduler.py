@@ -10,8 +10,9 @@ from datetime import datetime
 
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
-from config import ASK_PRICE_AFTER_MIN, REMIND_ALONE_MIN, REMIND_CONFIRM_MIN, Settings
+from config import ASK_PRICE_AFTER_MIN, REMIND_ALONE_MIN, REMIND_CONFIRM_MIN, TIMEZONE, Settings
 from db.repo import Repo
 from keyboards import inline
 from services import matching, payments
@@ -82,7 +83,9 @@ async def tick(bot: Bot, repo: Repo, settings: Settings) -> None:
 
 
 def create_scheduler(bot: Bot, repo: Repo, settings: Settings) -> AsyncIOScheduler:
-    scheduler = AsyncIOScheduler(timezone="Asia/Almaty")
-    scheduler.add_job(tick, "interval", minutes=1, kwargs=dict(bot=bot, repo=repo, settings=settings),
+    scheduler = AsyncIOScheduler(timezone=TIMEZONE)
+    # Триггер передаём объектом, а не строкой "interval": в собранном .exe
+    # APScheduler не находит триггеры по имени (они регистрируются через entry points)
+    scheduler.add_job(tick, IntervalTrigger(minutes=1), kwargs=dict(bot=bot, repo=repo, settings=settings),
                       id="tick", max_instances=1, coalesce=True, next_run_time=now_local())
     return scheduler

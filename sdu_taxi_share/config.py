@@ -3,13 +3,16 @@ from __future__ import annotations
 
 import hashlib
 import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent
+# Папка с .env, базой и логами. Для собранного .exe — папка, где лежит сам .exe.
+IS_FROZEN = getattr(sys, "frozen", False)
+BASE_DIR = Path(sys.executable).resolve().parent if IS_FROZEN else Path(__file__).resolve().parent
 
 # --- Предметная область -------------------------------------------------------
 

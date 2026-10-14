@@ -1,0 +1,58 @@
+name: SDU Taxi Share — сборка .exe для Windows
+
+# Собирает бота в один файл SDUTaxiShare.exe (Python на компьютере не нужен).
+# Скачать: вкладка Actions → последний успешный запуск → Artifacts → SDUTaxiShare-windows.
+
+on:
+  push:
+    paths:
+      - "sdu_taxi_share/**"
+      - ".github/workflows/build-exe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: sdu_taxi_share
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Установка зависимостей
+        run: python -m pip install -r requirements.txt pyinstaller
+
+      - name: Тесты
+        run: python -m pytest -q
+
+      - name: Сборка .exe
+        run: >-
+          pyinstaller --onefile --console --name SDUTaxiShare
+          --add-data "db/schema.sql:db"
+          --collect-data tzdata
+          --copy-metadata APScheduler
+          main.py
+
+      - name: Самопроверка собранного .exe
+        run: .\dist\SDUTaxiShare.exe --selftest
+
+      - name: Упаковка
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item dist\SDUTaxiShare.exe release\
+          Copy-Item .env.example release\
+          Copy-Item START_HERE.txt release\
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SDUTaxiShare-windows
+          path: sdu_taxi_share/release
+          retention-days: 90

@@ -12,7 +12,9 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
-from config import Settings, load_settings
+from aiogram.exceptions import TelegramNetworkError, TelegramUnauthorizedError
+
+from config import BASE_DIR, IS_FROZEN, Settings, load_settings
 from db.database import connect
 from db.repo import Repo
 from handlers import admin, fallback, payments, profile, ratings, start, trips
@@ -46,11 +48,34 @@ def build_dispatcher(repo: Repo, settings: Settings) -> Dispatcher:
     return dp
 
 
+async def selftest() -> None:
+    """Проверка собранного .exe без обращения к Telegram: БД, роутеры, планировщик, часовой пояс."""
+    from services.scheduler import tick
+    from services.timeutil import now_local
+
+    settings = Settings(bot_token="1:selftest", dev_mode=True, code_secret="x")
+    conn = await connect(":memory:")
+    repo = Repo(conn)
+    bot = Bot(settings.bot_token)
+    build_dispatcher(repo, settings)
+    scheduler = create_scheduler(bot, repo, settings)
+    assert [job.id for job in scheduler.get_jobs()] == ["tick"]
+    await tick(bot, repo, settings)
+    await bot.session.close()
+    await conn.close()
+    print(f"selftest OK, Almaty time {now_local():%Y-%m-%d %H:%M}")
+
+
 async def main() -> None:
     settings = load_settings()
+    if not settings.bot_token and sys.stdin and sys.stdin.isatty() \
+            and not (BASE_DIR / ".env").exists():
+        from setup_wizard import run_wizard
+        run_wizard(BASE_DIR / ".env")
+        settings = load_settings()
     setup_logging(settings)
     if not settings.bot_token:
-        log.error("BOT_TOKEN не задан. Скопируйте .env.example в .env и укажите токен.")
+        log.error("BOT_TOKEN не задан. Укажите токен бота в файле %s", BASE_DIR / ".env")
         sys.exit(1)
     if not settings.dev_mode and not settings.email_configured:
         log.warning("Не заданы BREVO_API_KEY или SMTP_HOST, а DEV_MODE=false — "
@@ -72,6 +97,9 @@ async def main() -> None:
         ])
         scheduler.start()
         log.info("bot started dev_mode=%s", settings.dev_mode)
+        if IS_FROZEN:
+            print("\n Бот работает. Не закрывайте это окно — иначе бот остановится.\n"
+                  " Остановить: Ctrl+C или закрыть окно.\n", flush=True)
         await dp.start_polling(bot)
     finally:
         if scheduler.running:
@@ -81,8 +109,31 @@ async def main() -> None:
         log.info("bot stopped")
 
 
-if __name__ == "__main__":
+def run() -> int:
+    if "--selftest" in sys.argv:
+        asyncio.run(selftest())
+        return 0
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        pass
+        return 0
+    except TelegramUnauthorizedError:
+        log.error("Telegram не принял токен. Проверьте BOT_TOKEN в файле %s", BASE_DIR / ".env")
+        return 1
+    except TelegramNetworkError:
+        log.error("Нет связи с Telegram. Проверьте интернет и запустите бота снова.")
+        return 1
+    except SystemExit as exc:
+        return int(exc.code or 0)
+    return 0
+
+
+if __name__ == "__main__":
+    code = run()
+    # В .exe окно консоли закрывается сразу — даём прочитать сообщение об ошибке
+    if IS_FROZEN and code != 0 and "--selftest" not in sys.argv:
+        try:
+            input("\nНажмите Enter, чтобы закрыть окно...")
+        except EOFError:
+            pass
+    sys.exit(code)
