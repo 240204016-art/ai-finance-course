@@ -153,7 +153,7 @@ class Repo:
     async def group_members(self, group_id: int) -> list[aiosqlite.Row]:
         """Активные участники группы в порядке присоединения."""
         return await self._all(
-            "SELECT t.id AS trip_id, t.confirmed, t.window_min, u.id AS user_id, u.telegram_id, "
+            "SELECT t.id AS trip_id, t.time AS trip_time, t.confirmed, t.window_min, u.id AS user_id, u.telegram_id, "
             "u.name, u.username, u.show_username, u.gender, u.rating_sum, u.rating_count "
             "FROM trips t JOIN users u ON u.id = t.user_id "
             f"WHERE t.group_id = ? AND t.status IN ({_placeholders(ACTIVE_TRIP_STATUSES)}) "
