@@ -46,3 +46,43 @@ async def test_max_attempts(repo, capsys):
     assert [r[1] for r in results[:4]] == [4, 3, 2, 1]
     assert results[4][0] is VerifyResult.TOO_MANY
     assert (await email_codes.verify_code(repo, SETTINGS, email, code))[0] is VerifyResult.TOO_MANY
+
+
+def test_brevo_request_payload():
+    import json
+    settings = Settings(bot_token="x", brevo_api_key="key-123", email_from="bot@gmail.com",
+                        code_secret="s")
+    req = email_codes.build_brevo_request(settings, "s@sdu.edu.kz", "654321")
+    body = json.loads(req.data)
+    assert req.full_url == "https://api.brevo.com/v3/smtp/email" and req.get_method() == "POST"
+    assert req.get_header("Api-key") == "key-123"
+    assert body["to"] == [{"email": "s@sdu.edu.kz"}]
+    assert body["sender"]["email"] == "bot@gmail.com"
+    assert "654321" in body["textContent"]
+
+
+async def test_issue_code_uses_brevo_when_key_set(repo, monkeypatch):
+    sent = []
+    monkeypatch.setattr(email_codes, "_send_brevo", lambda s, e, c: sent.append((e, c)))
+    monkeypatch.setattr(email_codes, "_send_smtp", lambda *a: pytest.fail("SMTP не должен вызываться"))
+    settings = Settings(bot_token="x", brevo_api_key="k", email_from="bot@gmail.com", code_secret="s")
+    assert await email_codes.issue_code(repo, settings, "s@sdu.edu.kz")
+    assert sent and sent[0][0] == "s@sdu.edu.kz"
+
+
+async def test_failed_send_removes_code(repo, monkeypatch):
+    def boom(*a):
+        raise OSError("network")
+    monkeypatch.setattr(email_codes, "_send_brevo", boom)
+    settings = Settings(bot_token="x", brevo_api_key="k", email_from="bot@gmail.com", code_secret="s")
+    assert not await email_codes.issue_code(repo, settings, "s@sdu.edu.kz")
+    assert await repo.get_code("s@sdu.edu.kz") is None
+
+
+def test_db_path_uses_railway_volume(monkeypatch, tmp_path):
+    from config import load_settings
+    monkeypatch.delenv("DB_PATH", raising=False)
+    monkeypatch.setenv("RAILWAY_VOLUME_MOUNT_PATH", "/data")
+    assert str(load_settings(tmp_path / "none.env").db_path) == "/data/bot.db"
+    monkeypatch.setenv("DB_PATH", "/x/my.db")
+    assert str(load_settings(tmp_path / "none.env").db_path) == "/x/my.db"

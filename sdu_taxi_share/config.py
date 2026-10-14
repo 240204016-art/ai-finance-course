@@ -88,6 +88,9 @@ class Settings:
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
+    brevo_api_key: str = ""
+    email_from: str = ""
+    email_from_name: str = "SDU Taxi Share"
     dev_mode: bool = False
     db_path: Path = BASE_DIR / "data" / "bot.db"
     log_path: Path = BASE_DIR / "logs" / "bot.log"
@@ -95,6 +98,17 @@ class Settings:
 
     def is_admin(self, telegram_id: int) -> bool:
         return telegram_id in self.admin_ids
+
+    @property
+    def email_configured(self) -> bool:
+        return bool(self.brevo_api_key or self.smtp_host)
+
+
+def _default_db_path() -> Path:
+    # На Railway к сервису подключается постоянный диск (Volume): база должна лежать на нём,
+    # иначе при каждом обновлении бота данные будут теряться.
+    volume = os.getenv("RAILWAY_VOLUME_MOUNT_PATH", "").strip()
+    return Path(volume) / "bot.db" if volume else BASE_DIR / "data" / "bot.db"
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -114,7 +128,10 @@ def load_settings(env_file: Path | None = None) -> Settings:
         smtp_user=smtp_user,
         smtp_password=os.getenv("SMTP_PASSWORD", ""),
         smtp_from=os.getenv("SMTP_FROM", "").strip() or smtp_user,
+        brevo_api_key=os.getenv("BREVO_API_KEY", "").strip(),
+        email_from=os.getenv("EMAIL_FROM", "").strip() or os.getenv("SMTP_FROM", "").strip() or smtp_user,
+        email_from_name=os.getenv("EMAIL_FROM_NAME", "").strip() or "SDU Taxi Share",
         dev_mode=_parse_bool(os.getenv("DEV_MODE")),
-        db_path=Path(db_path) if db_path else BASE_DIR / "data" / "bot.db",
+        db_path=Path(db_path) if db_path else _default_db_path(),
         code_secret=secret,
     )

@@ -4,11 +4,13 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import hmac
+import json
 import logging
 import re
 import secrets
 import smtplib
 import ssl
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from enum import Enum
@@ -70,6 +72,30 @@ def _send_smtp(settings: Settings, to_email: str, code: str) -> None:
             s.send_message(msg)
 
 
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+
+
+def build_brevo_request(settings: Settings, to_email: str, code: str) -> urllib.request.Request:
+    payload = {
+        "sender": {"email": settings.email_from, "name": settings.email_from_name},
+        "to": [{"email": to_email}],
+        "subject": t("email_subject"),
+        "textContent": t("email_body", code=code, ttl=CODE_TTL_MIN),
+    }
+    return urllib.request.Request(
+        BREVO_URL, data=json.dumps(payload).encode(), method="POST",
+        headers={"api-key": settings.brevo_api_key, "content-type": "application/json",
+                 "accept": "application/json"},
+    )
+
+
+def _send_brevo(settings: Settings, to_email: str, code: str) -> None:
+    """Отправка через HTTPS API Brevo — работает там, где SMTP-порты закрыты (Railway Hobby)."""
+    with urllib.request.urlopen(build_brevo_request(settings, to_email, code), timeout=20) as resp:
+        if resp.status >= 300:
+            raise RuntimeError(f"Brevo HTTP {resp.status}")
+
+
 async def issue_code(repo: Repo, settings: Settings, email: str) -> bool:
     """Создаёт новый код, сохраняет его хэш и отправляет письмо. True — если успешно."""
     code = generate_code()
@@ -81,10 +107,12 @@ async def issue_code(repo: Repo, settings: Settings, email: str) -> bool:
         print(f"[DEV_MODE] Код подтверждения для {email}: {code}", flush=True)
         return True
     try:
-        await asyncio.to_thread(_send_smtp, settings, email, code)
+        sender = _send_brevo if settings.brevo_api_key else _send_smtp
+        await asyncio.to_thread(sender, settings, email, code)
         return True
     except Exception as exc:  # noqa: BLE001 — любая ошибка SMTP
-        log.error("smtp send failed: %s", type(exc).__name__)
+        # Код ответа помогает понять причину (401 — неверный ключ, 400 — неподтверждённый отправитель)
+        log.error("email send failed: %s %s", type(exc).__name__, getattr(exc, "code", ""))
         await repo.delete_code(email)
         return False
 

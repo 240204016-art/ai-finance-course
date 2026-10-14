@@ -52,8 +52,9 @@ async def main() -> None:
     if not settings.bot_token:
         log.error("BOT_TOKEN не задан. Скопируйте .env.example в .env и укажите токен.")
         sys.exit(1)
-    if not settings.dev_mode and not settings.smtp_host:
-        log.warning("SMTP_HOST не задан и DEV_MODE=false — письма с кодами не будут отправляться.")
+    if not settings.dev_mode and not settings.email_configured:
+        log.warning("Не заданы BREVO_API_KEY или SMTP_HOST, а DEV_MODE=false — "
+                    "письма с кодами не будут отправляться.")
 
     conn = await connect(settings.db_path)
     repo = Repo(conn)

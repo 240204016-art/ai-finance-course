@@ -1,0 +1,12 @@
+# Настройки Railway (https://railway.com). В Settings сервиса укажите:
+#   Root Directory      = /sdu_taxi_share
+#   Railway Config File = /sdu_taxi_share/railway.toml
+# Python и зависимости Railway найдёт сам по requirements.txt и .python-version.
+
+[deploy]
+startCommand = "python main.py"
+# При падении — перезапуск (ON_FAILURE доступен на любом тарифе, ALWAYS — только на платных)
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+# Long polling допускает только один запущенный экземпляр бота
+numReplicas = 1

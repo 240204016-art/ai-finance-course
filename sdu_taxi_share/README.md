@@ -36,7 +36,50 @@ Telegram-бот для студентов SDU (кампус в Каскелен�
 
 ---
 
-## Быстрый старт
+## Запуск на Railway (без установки Python)
+
+Railway запускает бота в облаке круглосуточно; на своём компьютере ничего ставить не нужно.
+В проекте уже есть `railway.toml` и `.python-version`.
+
+1. **Токен и ID.** Получите токен у @BotFather и свой ID у @userinfobot (см. шаги 1–2 ниже).
+2. **Аккаунт.** Зарегистрируйтесь на [railway.com](https://railway.com) через GitHub.
+3. **Проект.** *New Project → Deploy from GitHub repo →* выберите `ai-finance-course`
+   (если репозитория нет в списке — нажмите *Configure GitHub App* и дайте доступ).
+   Первая сборка может упасть — это нормально, настройки ещё не заданы.
+4. **Настройки сервиса** (кликните на сервис → *Settings*):
+   - *Source → Branch*: `claude/fervent-albattani-zm3lur` (или `main`, если ветка уже слита);
+   - *Source → Root Directory*: `/sdu_taxi_share`;
+   - *Config-as-code → Railway Config File*: `/sdu_taxi_share/railway.toml`.
+5. **Переменные** (вкладка *Variables* → *New Variable*):
+   `BOT_TOKEN`, `ADMIN_IDS`, `DEV_MODE=true` (для первой проверки).
+6. **Диск для базы.** Правый клик по сервису (или *Command Palette*, `Ctrl/⌘+K`) → *Attach Volume*,
+   *Mount path*: `/data`. Бот сам положит туда `bot.db` — данные не пропадут при обновлениях.
+7. **Deploy.** Нажмите *Deploy* (или *Deploy changes*). Во вкладке *Deployments → View logs*
+   должна появиться строка `bot started`. Напишите боту `/start` в Telegram.
+   При `DEV_MODE=true` код подтверждения виден в этих логах.
+
+Сервис без публичного домена: бот сам опрашивает Telegram (long polling), входящие порты не нужны.
+Запускайте только **один** экземпляр бота с этим токеном: если бот одновременно запущен у вас
+на компьютере, Telegram выдаст ошибку `Conflict`.
+
+### Почта на Railway: Brevo вместо SMTP
+
+На тарифах Trial/Hobby Railway закрывает исходящий SMTP (порты 25/465/587), поэтому письма
+с кодами отправляются через HTTPS API [Brevo](https://www.brevo.com) (есть бесплатный тариф):
+
+1. Зарегистрируйтесь в Brevo.
+2. *Senders, Domains & Dedicated IPs → Senders → Add a sender* — добавьте адрес, с которого будут
+   уходить письма (можно Gmail), и подтвердите его по ссылке из письма.
+3. *SMTP & API → API Keys → Generate a new API key* — скопируйте ключ.
+4. В Railway → *Variables* добавьте `BREVO_API_KEY=<ключ>`, `EMAIL_FROM=<подтверждённый адрес>`
+   и поменяйте `DEV_MODE=false`.
+
+Если в логах `email send failed: HTTPError 401` — неверный ключ; `400` — обычно отправитель не подтверждён.
+Если `BREVO_API_KEY` не задан, бот использует SMTP-настройки.
+
+---
+
+## Быстрый старт (на своём компьютере)
 
 ### 1. Получить токен у @BotFather
 
@@ -76,13 +119,15 @@ cp .env.example .env             # Windows: copy .env.example .env
 |---|---|
 | `BOT_TOKEN` | токен от @BotFather |
 | `ADMIN_IDS` | Telegram ID администраторов через запятую: `111111111,222222222` |
-| `SMTP_HOST` | SMTP-сервер, например `smtp.gmail.com` |
+| `BREVO_API_KEY` | ключ API Brevo — если задан, письма идут через Brevo (нужно на Railway) |
+| `EMAIL_FROM` | адрес отправителя, подтверждённый в Brevo |
+| `SMTP_HOST` | SMTP-сервер, например `smtp.gmail.com` (если не используете Brevo) |
 | `SMTP_PORT` | `465` (SSL) или `587` (STARTTLS) |
 | `SMTP_USER` | логин почтового ящика, с которого уходят коды |
 | `SMTP_PASSWORD` | пароль. Для Gmail это **пароль приложения**: Google-аккаунт → Безопасность → двухэтапная аутентификация → «Пароли приложений» |
 | `DEV_MODE` | `true`: письма не отправляются, код печатается в консоль (для разработки). В продакшене `false` |
 | `SMTP_FROM` | *(необязательно)* адрес отправителя, по умолчанию `SMTP_USER` |
-| `DB_PATH` | *(необязательно)* путь к БД, по умолчанию `data/bot.db` |
+| `DB_PATH` | *(необязательно)* путь к БД; по умолчанию `data/bot.db`, на Railway — `bot.db` на подключённом Volume |
 | `CODE_SECRET` | *(необязательно)* секрет для хэширования кодов, по умолчанию выводится из токена |
 
 Для первого запуска хватит `BOT_TOKEN`, `ADMIN_IDS` и `DEV_MODE=true`: код подтверждения
