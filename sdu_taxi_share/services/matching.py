@@ -198,7 +198,8 @@ async def leave_trip(repo: Repo, trip_id: int, now: datetime | None = None,
 
         group = await repo.get_group(group_id)
         remaining = await repo.group_members(group_id)
-        late = bool(remaining) and minutes_until(trip["date"], trip["time"], now) < LATE_CANCEL_MIN
+        dep_time = group["time"] if trip["status"] == "matched" else trip["time"]
+        late = bool(remaining) and minutes_until(trip["date"], dep_time, now) < LATE_CANCEL_MIN
         result = LeaveResult(group_id, late, remaining)
 
         if not remaining:

@@ -17,6 +17,9 @@ _UPDATABLE = {
     "trips": {"status", "group_id", "window_min", "confirmed", "reminded_30", "reminded_15"},
 }
 
+# Время выезда: в собранной группе — время группы, иначе — своё время поездки
+_DEP_TIME = "CASE WHEN t.status = 'matched' AND g.time IS NOT NULL THEN g.time ELSE t.time END AS dep_time"
+
 
 def utcnow() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -173,6 +176,10 @@ class Repo:
         return await self._all(
             "SELECT * FROM groups WHERE status = 'formed' AND price_asked = 0")
 
+    async def stale_formed_groups(self) -> list[aiosqlite.Row]:
+        return await self._all(
+            "SELECT * FROM groups WHERE status = 'formed' AND price_asked = 1")
+
     # --- trips ----------------------------------------------------------------
 
     async def create_trip(self, user_id: int, direction: str, district: str, date: str,
@@ -206,8 +213,9 @@ class Repo:
 
     async def active_trips_of_user(self, user_id: int) -> list[aiosqlite.Row]:
         return await self._all(
-            f"SELECT * FROM trips WHERE user_id = ? AND status IN "
-            f"({_placeholders(ACTIVE_TRIP_STATUSES)}) ORDER BY date, time",
+            f"SELECT t.*, {_DEP_TIME} FROM trips t LEFT JOIN groups g ON g.id = t.group_id "
+            f"WHERE t.user_id = ? AND t.status IN ({_placeholders(ACTIVE_TRIP_STATUSES)}) "
+            "ORDER BY t.date, dep_time",
             [user_id, *ACTIVE_TRIP_STATUSES],
         )
 
@@ -220,7 +228,8 @@ class Repo:
 
     async def all_active_trips(self) -> list[aiosqlite.Row]:
         return await self._all(
-            "SELECT t.*, u.telegram_id FROM trips t JOIN users u ON u.id = t.user_id "
+            f"SELECT t.*, u.telegram_id, {_DEP_TIME} FROM trips t "
+            "JOIN users u ON u.id = t.user_id LEFT JOIN groups g ON g.id = t.group_id "
             f"WHERE t.status IN ({_placeholders(ACTIVE_TRIP_STATUSES)})",
             ACTIVE_TRIP_STATUSES,
         )
@@ -302,6 +311,9 @@ class Repo:
         rows = await self._all(
             "SELECT type, COUNT(DISTINCT ref_id) AS n FROM events GROUP BY type")
         return {row["type"]: row["n"] for row in rows}
+
+    async def count_events(self, event_type: str) -> int:
+        return await self._scalar("SELECT COUNT(*) FROM events WHERE type = ?", [event_type])
 
     async def count(self, table: str) -> int:
         if table not in {"users", "trips", "groups"}:
