@@ -43,6 +43,9 @@ https://240204016-art.github.io/ai-finance-course/landing/ после слиян
 
 ## 3. Хостинг
 
+**Бесплатный вариант:** бот на Google Apps Script — [apps-script/README.md](apps-script/README.md)
+(сервер и карта не нужны, заказы пишутся в Google-таблицу). Ниже — вариант с Python.
+
 Бот должен работать постоянно. Подойдёт любой сервер с Python: VPS, Railway, Render.
 Команда запуска — `python3 bot/bot.py`, значения из `.env` задайте переменными окружения.
 
